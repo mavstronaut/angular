@@ -47,7 +47,7 @@ if (!module.parent) {
 }
 
 function run(config) {
-  var src = ['!node_modules', '!node_modules/**', './angular2/src/facade/**/*.es6'];
+  var src = ['!node_modules', '!node_modules/**', './angular2/src/facade/**/*.es6', './globals.ts'];
   var transpiler;
   if (config.typescript) {
     transpiler = ts({

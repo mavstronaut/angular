@@ -78,7 +78,7 @@
     "temp": "^0.8.1",
     "ternary-stream": "^1.2.3",
     "through2": "^0.6.1",
-    "typescript": "mprobst/TypeScript#decorators_min",
+    "typescript": "Microsoft/TypeScript#nonTSExtensions",
     "vinyl": "^0.4.6",
     "yargs": "2.3.*"
   }
