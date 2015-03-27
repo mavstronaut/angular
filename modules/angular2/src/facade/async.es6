@@ -1,30 +1,32 @@
+/// <reference path="../../typings/rx/rx.d.ts" />
+
 import {int, global, isPresent} from 'angular2/src/facade/lang';
 import {List} from 'angular2/src/facade/collection';
-import Rx from 'rx/dist/rx.all';
+// import Rx from 'rx/dist/rx.all';
 
 export var Promise = global.Promise;
 
 export class PromiseWrapper {
-  static resolve(obj):Promise {
+  static resolve(obj):Promise<any> {
     return Promise.resolve(obj);
   }
 
-  static reject(obj):Promise {
+  static reject(obj):Promise<any> {
     return Promise.reject(obj);
   }
 
   // Note: We can't rename this method into `catch`, as this is not a valid
   // method name in Dart.
-  static catchError(promise:Promise, onError:Function):Promise {
+  static catchError<T>(promise:Promise<T>, onError:(error: any) => T | Thenable<T>): Promise<T> {
     return promise.catch(onError);
   }
 
-  static all(promises:List):Promise {
+  static all(promises:List<Promise<any>>):Promise<any> {
     if (promises.length == 0) return Promise.resolve([]);
     return Promise.all(promises);
   }
 
-  static then(promise:Promise, success:Function, rejection:Function):Promise {
+  static then<T>(promise:Promise<T>, success: (value: any) => T | Thenable<T>, rejection:(error: any) => T | Thenable<T>):Promise<T> {
     return promise.then(success, rejection);
   }
 
@@ -60,15 +62,15 @@ export class PromiseWrapper {
  *
  * Once a reference implementation of the spec is available, switch to it.
  */
-export var Observable = Rx.Observable;
-export var ObservableController = Rx.Subject;
+type Observable = Rx.Observable<any>;
+type ObservableController = Rx.Subject<any>;
 
 export class ObservableWrapper {
-  static createController():Rx.Subject {
+  static createController():Rx.Subject<any> {
     return new Rx.Subject();
   }
 
-  static createObservable(subject:Rx.Subject):Observable {
+  static createObservable(subject:Rx.Subject<any>):Observable {
     return subject;
   }
 
@@ -84,15 +86,15 @@ export class ObservableWrapper {
     }
   }
 
-  static callNext(subject:Rx.Subject, value:any) {
+  static callNext(subject:Rx.Subject<any>, value:any) {
     subject.onNext(value);
   }
 
-  static callThrow(subject:Rx.Subject, error:any) {
+  static callThrow(subject:Rx.Subject<any>, error:any) {
     subject.onError(error);
   }
 
-  static callReturn(subject:Rx.Subject) {
+  static callReturn(subject:Rx.Subject<any>) {
     subject.onCompleted();
   }
 }

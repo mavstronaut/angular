@@ -7,7 +7,8 @@ var merge = require('merge');
 var path = require('path');
 
 var gulpTraceur = require('./tools/transpiler/gulp-traceur');
-
+var sourcemaps = require('gulp-sourcemaps');
+var tsc = require('gulp-typescript');
 var clean = require('./tools/build/clean');
 var transpile = require('./tools/build/transpile');
 var html = require('./tools/build/html');
@@ -325,11 +326,29 @@ gulp.task('build/transpile.js.prod.es5', function() {
 
 gulp.task('build/transpile.js.prod.es5.ts', function() {
   return es5build({
-    src: CONFIG.dest.js.prod.es6,
+    src: 'modules/**/*.es6',
     dest: CONFIG.dest.js.prod.es5,
     modules: 'instantiate',
     typescript: true
   });
+});
+
+gulp.task('build/transpile.es6.to.es5.with.typescript', function () {
+  var tsResult = gulp.src(['angular2/src/facade/*.es6', 'angular2/*.ts', 'angular2/typings/**/*.d.ts'], {cwd:'modules'})
+                     .pipe(sourcemaps.init())
+                     .pipe(tsc({
+
+      target: 'ES5',
+      module: /*system.js*/'commonjs',
+      allowNonTsExtensions: true,
+      typescript: require('typescript'),
+      emitOnError: true
+    })).js;
+  return merge([
+    // Write external sourcemap next to the js file
+    tsResult.js.pipe(sourcemaps.write('.')).pipe(gulp.dest('dist/js/es6_to_es5_with_typescript')),
+    tsResult.js.pipe(gulp.dest('dist/js/es6_to_es5_with_typescript')),
+  ]);
 });
 
 gulp.task('build/transpile.js.prod', function(done) {

@@ -67,7 +67,7 @@ export class StringWrapper {
     return s.charCodeAt(index);
   }
 
-  static split(s:string, regExp:RegExp) {
+  static split(s:string, regExp) {
     return s.split(regExp.multiple);
   }
 
@@ -110,8 +110,7 @@ export class StringWrapper {
 }
 
 export class StringJoiner {
-  constructor() {
-    this.parts = [];
+  constructor(public parts = []) {
   }
 
   add(part:string) {
@@ -124,9 +123,8 @@ export class StringJoiner {
 }
 
 export class NumberParseError extends Error {
-  constructor(message) {
+  constructor(public message) {
     super();
-    this.message = message;
   }
 
   toString() {
