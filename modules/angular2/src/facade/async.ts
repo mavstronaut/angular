@@ -1,8 +1,13 @@
 /// <reference path="../../typings/rx/rx.d.ts" />
+// alexeagle HACKING
+export var __esModule = true;
 
 import {int, global, isPresent} from 'angular2/src/facade/lang';
 import {List} from 'angular2/src/facade/collection';
-// import Rx from 'rx/dist/rx.all';
+
+// FIXME: hack around import problem with bad syntax
+//import Rx from '../../typings/rx/rx';
+var Rx = require('rx/dist/rx.all');
 
 export var Promise = global.Promise;
 

@@ -1,6 +1,9 @@
 var _global = typeof window === 'undefined' ? global : window;
 export {_global as global};
 
+// alexeagle HACKING
+export var __esModule = true;
+
 export var Type = Function;
 export var Math = _global.Math;
 export var Date = _global.Date;
@@ -84,7 +87,7 @@ export class StringWrapper {
   }
 
   static replaceAll(s:string, from:RegExp, replace:string):string {
-    return s.replace(from.multiple, replace);
+    return s.replace(from, replace);
   }
 
   static startsWith(s:string, start:string) {
@@ -96,7 +99,7 @@ export class StringWrapper {
   }
 
   static replaceAllMapped(s:string, from:RegExp, cb:Function): string {
-    return s.replace(from.multiple, function(...matches) {
+    return s.replace(from, function(...matches) {
       // Remove offset & string from the result array
       matches.splice(-2, 2);
       // The callback receives match, p1, ..., pn
@@ -122,10 +125,10 @@ export class StringJoiner {
   }
 }
 
-export class NumberParseError extends Error {
-  constructor(public message) {
-    super();
-  }
+export class NumberParseError implements Error {
+  name: string;
+
+  constructor(public message: string) {}
 
   toString() {
     return this.message;
@@ -220,6 +223,30 @@ export class RegExpWrapper {
     };
   }
 }
+
+//export var RegExp = _global.RegExp;
+//
+//export class RegExpWrapper {
+//  static create(regExpStr, flags:string = ''):RegExp {
+//    flags = flags.replace(/g/g, '');
+//    return new _global.RegExp(regExpStr, flags); //+ 'g');
+//  }
+//  static firstMatch(regExp, input) {
+//    // Reset multimatch regex state
+//    regExp.lastIndex = 0;
+//    return input.match(regExp);
+//  }
+//  static matcher(regExp, input) {
+//    // Reset regex state for the case
+//    // someone did not loop over all matches
+//    // last time.
+//    regExp.lastIndex = 0;
+//    return {
+//      re: regExp,
+//      input: input
+//    };
+//  }
+//}
 
 export class RegExpMatcherWrapper {
   static next(matcher) {

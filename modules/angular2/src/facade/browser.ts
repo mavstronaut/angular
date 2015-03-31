@@ -1,6 +1,8 @@
 /**
  * JS version of browser APIs. This library can only run in the browser.
  */
+// alexeagle HACKING
+export var __esModule = true;
 
 var win = window;
 

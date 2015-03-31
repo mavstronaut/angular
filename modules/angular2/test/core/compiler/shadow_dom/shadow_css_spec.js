@@ -23,7 +23,7 @@ export function main() {
       expect(s(css, 'a')).toEqual(expected);
     });
 
-    it('should hanlde invalid css', () => {
+    it('should handle invalid css', () => {
       var css = 'one {color: red;}garbage';
       var expected = 'one[a] {color: red;}';
       expect(s(css, 'a')).toEqual(expected);

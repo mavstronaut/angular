@@ -120,14 +120,15 @@ var CONFIG = {
   srcFolderInsertion: SRC_FOLDER_INSERTION,
   transpile: {
     src: {
+      ts: ['modules/**/*.ts'],
       js: ['modules/**/*.js', 'modules/**/*.es6'],
       dart: ['modules/**/*.js']
     },
     options: {
       js: {
         dev: merge(true, _COMPILER_CONFIG_JS_DEFAULT, {
-          typeAssertionModule: 'rtts_assert/rtts_assert',
-          typeAssertions: true,
+          //typeAssertionModule: 'rtts_assert/rtts_assert',
+          typeAssertions: false,
           outputLanguage: 'es6'
         }),
         prod: merge(true, _COMPILER_CONFIG_JS_DEFAULT, {
@@ -135,8 +136,8 @@ var CONFIG = {
           outputLanguage: 'es6'
         }),
         cjs: merge(true, _COMPILER_CONFIG_JS_DEFAULT, {
-          typeAssertionModule: 'rtts_assert/rtts_assert',
-          typeAssertions: true,
+          //typeAssertionModule: 'rtts_assert/rtts_assert',
+          typeAssertions: false,
           modules: 'commonjs'
         })
       },
@@ -283,6 +284,26 @@ gulp.task('build/clean.docs', clean(gulp, gulpPlugins, {
 
 // ------------
 // transpile
+
+gulp.task('build/transpile.ts.cjs', function() {
+  var tsResult = gulp.src(CONFIG.transpile.src.ts)
+      .pipe(sourcemaps.init())
+      .pipe(tsc({
+        target: 'ES5',
+        module: /*system.js*/'commonjs',
+        allowNonTsExtensions: false,
+        typescript: require('typescript'),
+        //declarationFiles: true,
+        emitOnError: true
+      }));
+  var dest = gulp.dest(CONFIG.dest.js.cjs);
+  return merge([
+    // Write external sourcemap next to the js file
+    tsResult.js.pipe(sourcemaps.write('.')).pipe(dest),
+    tsResult.js.pipe(dest),
+    tsResult.dts.pipe(dest),
+  ]);
+});
 
 gulp.task('build/transpile.js.dev.es6', transpile(gulp, gulpPlugins, {
   src: CONFIG.transpile.src.js,
@@ -759,7 +780,7 @@ gulp.task('build.js.prod', function(done) {
 
 gulp.task('build.js.cjs', function(done) {
   runSequence(
-    ['build/transpile.js.cjs', 'build/copy.js.cjs', 'build/multicopy.js.cjs'],
+    ['build/transpile.js.cjs', 'build/transpile.ts.cjs', 'build/copy.js.cjs', 'build/multicopy.js.cjs'],
     ['build/linknodemodules.js.cjs'],
     'build/transformCJSTests',
     done

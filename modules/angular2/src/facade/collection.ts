@@ -1,4 +1,6 @@
 import {int, isJsObject, global} from 'angular2/src/facade/lang';
+// alexeagle HACKING
+export var __esModule = true;
 
 export var List = global.Array;
 export var Map = global.Map;
@@ -122,7 +124,7 @@ export class ListWrapper {
     }
     return null;
   }
-  static reduce(list:List<any>, fn:Function, init) {
+  static reduce<T>(list:List<T>, fn:(previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, init: T) {
     return list.reduce(fn, init);
   }
   static filter(array, pred:Function) {
@@ -159,7 +161,7 @@ export class ListWrapper {
       list.splice(index, 1);
     }
   }
-  static removeLast(list:List) {
+  static removeLast<T>(list: List<T>): T {
     return list.pop();
   }
   static remove(list, el): boolean {
@@ -192,7 +194,7 @@ export class ListWrapper {
   static slice<T>(l:List<T>, from:int, to:int):List<T> {
     return l.slice(from, to);
   }
-  static sort(l:List<any>, compareFn:Function) {
+  static sort<T>(l:List<T>, compareFn:(a: T, b: T) => number) {
     l.sort(compareFn);
   }
 }
@@ -219,6 +221,6 @@ export function iterateListLike(obj, fn:Function) {
 }
 
 export class SetWrapper {
-  static createFromList(lst:List<any>) { return new Set(lst); }
+  static createFromList<T>(lst:List<T>): Set<T> { return new Set(lst); }
   static has<T>(s:Set<T>, key: T):boolean { return s.has(key); }
 }
