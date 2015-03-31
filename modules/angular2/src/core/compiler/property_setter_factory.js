@@ -1,22 +1,8 @@
 import {StringWrapper, RegExpWrapper, BaseException, isPresent, isBlank, isString, stringify} from 'angular2/src/facade/lang';
 import {ListWrapper, StringMapWrapper} from 'angular2/src/facade/collection';
 import {DOM} from 'angular2/src/dom/dom_adapter';
+import {camelCaseToDashCase, dashCaseToCamelCase} from './string_utils';
 import {reflector} from 'angular2/src/reflection/reflection';
-
-var DASH_CASE_REGEXP = RegExpWrapper.create('-([a-z])');
-var CAMEL_CASE_REGEXP = RegExpWrapper.create('([A-Z])');
-
-export function dashCaseToCamelCase(input:string): string {
-  return StringWrapper.replaceAllMapped(input, DASH_CASE_REGEXP, (m) => {
-    return m[1].toUpperCase();
-  });
-}
-
-export function camelCaseToDashCase(input:string): string {
-  return StringWrapper.replaceAllMapped(input, CAMEL_CASE_REGEXP, (m) => {
-    return '-' + m[1].toLowerCase();
-  });
-}
 
 const STYLE_SEPARATOR = '.';
 var propertySettersCache = StringMapWrapper.create();
@@ -46,7 +32,7 @@ export function setterFactory(property: string): Function {
         if (DOM.hasProperty(receiver, property)) {
           return propertySetterFn(receiver, value);
         }
-      }
+      };
       StringMapWrapper.set(propertySettersCache, property, setterFn);
     }
   }
@@ -75,7 +61,7 @@ function attributeSetterFactory(attrName:string): Function {
         DOM.setAttribute(element, dashCasedAttributeName, stringify(value));
       } else {
         if (isPresent(value)) {
-          throw new BaseException("Invalid " + dashCasedAttributeName + 
+          throw new BaseException("Invalid " + dashCasedAttributeName +
             " attribute, only string values are allowed, got '" + stringify(value) + "'");
         }
         DOM.removeAttribute(element, dashCasedAttributeName);
@@ -92,13 +78,14 @@ var classSettersCache = StringMapWrapper.create();
 
 function classSetterFactory(className:string): Function {
   var setterFn = StringMapWrapper.get(classSettersCache, className);
-
+  var dashCasedClassName;
   if (isBlank(setterFn)) {
+    dashCasedClassName = camelCaseToDashCase(className);
     setterFn = function(element, value) {
       if (value) {
-        DOM.addClass(element, className);
+        DOM.addClass(element, dashCasedClassName);
       } else {
-        DOM.removeClass(element, className);
+        DOM.removeClass(element, dashCasedClassName);
       }
     };
     StringMapWrapper.set(classSettersCache, className, setterFn);

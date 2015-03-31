@@ -168,11 +168,13 @@ export class Pipe extends AST {
   exp:AST;
   name:string;
   args:List<AST>;
-  constructor(exp:AST, name:string, args:List) {
+  inBinding:boolean;
+  constructor(exp:AST, name:string, args:List, inBinding:boolean) {
     super();
     this.exp = exp;
     this.name = name;
     this.args = args;
+    this.inBinding = inBinding;
   }
 
   visit(visitor) {
@@ -418,7 +420,6 @@ export class TemplateBinding {
   name:string;
   expression:ASTWithSource;
   constructor(key:string, keyIsVar:boolean, name:string, expression:ASTWithSource) {
-    super();
     this.key = key;
     this.keyIsVar = keyIsVar;
     // only either name or expression will be filled.

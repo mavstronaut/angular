@@ -1,6 +1,6 @@
 import {isPresent} from 'angular2/src/facade/lang';
-import {Observable, ObservableWrapper} from 'angular2/src/facade/async';
-import {StringMap, StringMapWrapper} from 'angular2/src/facade/collection';
+import {Observable, ObservableController, ObservableWrapper} from 'angular2/src/facade/async';
+import {StringMap, StringMapWrapper, ListWrapper, List} from 'angular2/src/facade/collection';
 import {Validators} from './validators';
 
 export const VALID = "VALID";
@@ -21,37 +21,40 @@ export const INVALID = "INVALID";
 export class AbstractControl {
   _value:any;
   _status:string;
-  _errors;
+  _errors:StringMap;
   _pristine:boolean;
-  _parent:ControlGroup;
+  _parent:any; /* ControlGroup | ControlArray */
   validator:Function;
+
+  valueChanges:Observable;
+  _valueChangesController:ObservableController;
 
   constructor(validator:Function) {
     this.validator = validator;
     this._pristine = true;
   }
 
-  get value() {
+  get value():any {
     return this._value;
   }
 
-  get status() {
+  get status():string {
     return this._status;
   }
 
-  get valid() {
+  get valid():boolean {
     return this._status === VALID;
   }
 
-  get errors() {
+  get errors():StringMap {
     return this._errors;
   }
 
-  get pristine() {
+  get pristine():boolean {
     return this._pristine;
   }
 
-  get dirty() {
+  get dirty():boolean {
     return ! this.pristine;
   }
 
@@ -67,9 +70,6 @@ export class AbstractControl {
 }
 
 export class Control extends AbstractControl {
-  valueChanges:Observable;
-  _valueChangesController;
-
   constructor(value:any, validator:Function = Validators.nullValidator) {
     super(validator);
     this._setValueErrorsStatus(value);
@@ -78,7 +78,7 @@ export class Control extends AbstractControl {
     this.valueChanges = ObservableWrapper.createObservable(this._valueChangesController);
   }
 
-  updateValue(value:any) {
+  updateValue(value:any):void {
     this._setValueErrorsStatus(value);
     this._pristine = false;
 
@@ -95,16 +95,13 @@ export class Control extends AbstractControl {
 }
 
 export class ControlGroup extends AbstractControl {
-  controls;
-  optionals;
+  controls:StringMap;
+  _optionals:StringMap;
 
-  valueChanges:Observable;
-  _valueChangesController;
-
-  constructor(controls, optionals = null, validator:Function = Validators.group) {
+  constructor(controls:StringMap, optionals:StringMap = null, validator:Function = Validators.group) {
     super(validator);
     this.controls = controls;
-    this.optionals = isPresent(optionals) ? optionals : {};
+    this._optionals = isPresent(optionals) ? optionals : {};
 
     this._valueChangesController = ObservableWrapper.createController();
     this.valueChanges = ObservableWrapper.createObservable(this._valueChangesController);
@@ -113,17 +110,17 @@ export class ControlGroup extends AbstractControl {
     this._setValueErrorsStatus();
   }
 
-  include(controlName:string) {
-    StringMapWrapper.set(this.optionals, controlName, true);
+  include(controlName:string):void {
+    StringMapWrapper.set(this._optionals, controlName, true);
     this._updateValue();
   }
 
-  exclude(controlName:string) {
-    StringMapWrapper.set(this.optionals, controlName, false);
+  exclude(controlName:string):void {
+    StringMapWrapper.set(this._optionals, controlName, false);
     this._updateValue();
   }
 
-  contains(controlName:string) {
+  contains(controlName:string):boolean {
     var c = StringMapWrapper.contains(this.controls, controlName);
     return c && this._included(controlName);
   }
@@ -156,7 +153,7 @@ export class ControlGroup extends AbstractControl {
     });
   }
 
-  _reduceChildren(initValue, fn:Function) {
+  _reduceChildren(initValue:any, fn:Function) {
     var res = initValue;
     StringMapWrapper.forEach(this.controls, (control, name) => {
       if (this._included(name)) {
@@ -167,7 +164,68 @@ export class ControlGroup extends AbstractControl {
   }
 
   _included(controlName:string):boolean {
-    var isOptional = StringMapWrapper.contains(this.optionals, controlName);
-    return !isOptional || StringMapWrapper.get(this.optionals, controlName);
+    var isOptional = StringMapWrapper.contains(this._optionals, controlName);
+    return !isOptional || StringMapWrapper.get(this._optionals, controlName);
+  }
+}
+
+export class ControlArray extends AbstractControl {
+  controls:List;
+
+  constructor(controls:List<AbstractControl>, validator:Function = Validators.array) {
+    super(validator);
+    this.controls = controls;
+
+    this._valueChangesController = ObservableWrapper.createController();
+    this.valueChanges = ObservableWrapper.createObservable(this._valueChangesController);
+
+    this._setParentForControls();
+    this._setValueErrorsStatus();
+  }
+
+  at(index:number):AbstractControl {
+    return this.controls[index];
+  }
+
+  push(control:AbstractControl):void {
+    ListWrapper.push(this.controls, control);
+    control.setParent(this);
+    this._updateValue();
+  }
+
+  insert(index:number, control:AbstractControl):void {
+    ListWrapper.insert(this.controls, index, control);
+    control.setParent(this);
+    this._updateValue();
+  }
+
+  removeAt(index:number):void {
+    ListWrapper.removeAt(this.controls, index);
+    this._updateValue();
+  }
+
+  get length():number {
+    return this.controls.length;
+  }
+
+  _updateValue() {
+    this._setValueErrorsStatus();
+    this._pristine = false;
+
+    ObservableWrapper.callNext(this._valueChangesController, this._value);
+
+    this._updateParent();
+  }
+
+  _setParentForControls() {
+    ListWrapper.forEach(this.controls, (control) => {
+      control.setParent(this);
+    });
+  }
+
+  _setValueErrorsStatus()  {
+    this._value = ListWrapper.map(this.controls, (c) => c.value);
+    this._errors = this.validator(this);
+    this._status = isPresent(this._errors) ? INVALID : VALID;
   }
 }

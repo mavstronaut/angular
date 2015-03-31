@@ -410,7 +410,7 @@ export class Directive extends Injectable {
   /**
    * Specifies a set of lifecycle events in which the directive participates.
    *
-   * See: [onChange], [onDestroy] for details.
+   * See: [onChange], [onDestroy], [onAllChangesDone] for details.
    */
   lifecycle:List; //List<LifecycleEvent>
 
@@ -437,7 +437,7 @@ export class Directive extends Injectable {
   /**
    * Returns true if a directive participates in a given [LifecycleEvent].
    *
-   * See: [onChange], [onDestroy] for details.
+   * See: [onChange], [onDestroy], [onAllChangesDone] for details.
    */
   hasLifecycleHook(hook:string):boolean {
     return isPresent(this.lifecycle) ? ListWrapper.contains(this.lifecycle, hook) : false;
@@ -445,18 +445,17 @@ export class Directive extends Injectable {
 }
 
 /**
- * Declare template views for an Angular application.
+ * Declare reusable UI building blocks for an application.
  *
- * Each angular component requires a single `@Component` and at least one `@Template` annotation. This allows Angular to
- * encapsulate state information and templates. These form the fundamental reusable building blocks for developing an
- * application. There can only be one component per DOM element.
+ * Each angular component requires a single `@Component` and at least one `@Template` annotation. The @Component
+ * annotation specifies when a component is instantiated, and which properties and events it binds to.
  *
  * When a component is instantiated, Angular
  * - creates a shadow DOM for the component.
  * - loads the selected template into the shadow DOM.
  * - creates a child [Injector] which is configured with the [Component.services].
  *
- * All template expressions and statments are then evaluted against the component instance.
+ * All template expressions and statements are then evaluated against the component instance.
  *
  * For details on the `@Template` annotation, see [Template].
  *
@@ -660,7 +659,7 @@ export class DynamicComponent extends Directive {
  *   bind: {
  *     'text': 'tooltip'
  *   },
- *   event: {
+ *   events: {
  *     'onmouseenter': 'onMouseEnter()',
  *     'onmouseleave': 'onMouseLeave()'
  *   }
@@ -717,13 +716,13 @@ export class Decorator extends Directive {
       compileChildren:boolean
     }={})
   {
-    this.compileChildren = compileChildren;
     super({
         selector: selector,
         bind: bind,
         events: events,
         lifecycle: lifecycle
     });
+    this.compileChildren = compileChildren;
   }
 }
 
@@ -852,9 +851,9 @@ export class Viewport extends Directive {
  * ```
  * @Decorator({
  *   ...,
- *   lifecycle: [ onDestroy ]
+ *   lifecycle: [onDestroy]
  * })
- * class ClassSet implements OnDestroy {
+ * class ClassSet {
  *   onDestroy() {
  *     // invoked to notify directive of the containing view destruction.
  *   }
@@ -868,6 +867,11 @@ export const onDestroy = "onDestroy";
 /**
  * Notify a directive when any of its bindings have changed.
  *
+ * This method is called right after the directive's bindings have been checked,
+ * and before any of its children's bindings have been checked.
+ *
+ * It is invoked only if at least one of the directive's bindings has changed.
+ *
  * ## Example:
  *
  * ```
@@ -876,7 +880,8 @@ export const onDestroy = "onDestroy";
  *   bind: {
  *     'propA': 'propA'
  *     'propB': 'propB'
- *   }
+ *   },
+ *   lifecycle: [onChange]
  * })
  * class ClassSet {
  *   propA;
@@ -895,3 +900,24 @@ export const onDestroy = "onDestroy";
  * @publicModule angular2/annotations
  */
 export const onChange = "onChange";
+
+/**
+ * Notify a directive when the bindings of all its children have been changed.
+ *
+ * ## Example:
+ *
+ * ```
+ * @Decorator({
+ *   selector: '[class-set]',
+ *   lifecycle: [onAllChangesDone]
+ * })
+ * class ClassSet {
+ *
+ *   onAllChangesDone() {
+ *   }
+ *
+ * }
+ *  ```
+ * @publicModule angular2/annotations
+ */
+export const onAllChangesDone = "onAllChangesDone";

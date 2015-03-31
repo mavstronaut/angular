@@ -3,7 +3,7 @@ import {List, ListWrapper, MapWrapper, StringMapWrapper} from 'angular2/src/faca
 
 import {AbstractChangeDetector} from './abstract_change_detector';
 import {PipeRegistry} from './pipes/pipe_registry';
-import {ChangeDetectionUtil, SimpleChange, uninitialized} from './change_detection_util';
+import {ChangeDetectionUtil, uninitialized} from './change_detection_util';
 
 
 import {
@@ -17,6 +17,7 @@ import {
   RECORD_TYPE_PRIMITIVE_OP,
   RECORD_TYPE_KEYED_ACCESS,
   RECORD_TYPE_PIPE,
+  RECORD_TYPE_BINDING_PIPE,
   RECORD_TYPE_INTERPOLATE
   } from './proto_record';
 
@@ -33,8 +34,9 @@ export class DynamicChangeDetector extends AbstractChangeDetector {
   prevContexts:List;
 
   protos:List<ProtoRecord>;
+  directiveMementos:List;
 
-  constructor(dispatcher:any, pipeRegistry:PipeRegistry, protoRecords:List<ProtoRecord>) {
+  constructor(dispatcher:any, pipeRegistry:PipeRegistry, protoRecords:List<ProtoRecord>, directiveMementos:List) {
     super();
     this.dispatcher = dispatcher;
     this.pipeRegistry = pipeRegistry;
@@ -51,6 +53,7 @@ export class DynamicChangeDetector extends AbstractChangeDetector {
     this.locals = null;
 
     this.protos = protoRecords;
+    this.directiveMementos = directiveMementos;
   }
 
   hydrate(context:any, locals:any) {
@@ -101,9 +104,19 @@ export class DynamicChangeDetector extends AbstractChangeDetector {
     }
   }
 
+  notifyOnAllChangesDone() {
+    var mementos = this.directiveMementos;
+    for (var i = mementos.length - 1; i >= 0; --i) {
+      var memento = mementos[i];
+      if (memento.notifyOnAllChangesDone) {
+        this.dispatcher.onAllChangesDone(memento);
+      }
+    }
+  }
+
   _check(proto:ProtoRecord) {
     try {
-      if (proto.mode == RECORD_TYPE_PIPE) {
+      if (proto.mode === RECORD_TYPE_PIPE || proto.mode === RECORD_TYPE_BINDING_PIPE) {
         return this._pipeCheck(proto);
       } else {
         return this._referenceCheck(proto);
@@ -202,7 +215,14 @@ export class DynamicChangeDetector extends AbstractChangeDetector {
     if (isPresent(storedPipe)) {
       storedPipe.onDestroy();
     }
-    var pipe = this.pipeRegistry.get(proto.name, context);
+
+    // Currently, only pipes that used in bindings in the template get
+    // the bindingPropagationConfig of the encompassing component.
+    //
+    // In the future, pipes declared in the bind configuration should
+    // be able to access the bindingPropagationConfig of that component.
+    var bpc = proto.mode === RECORD_TYPE_BINDING_PIPE ? this.bindingPropagationConfig : null;
+    var pipe = this.pipeRegistry.get(proto.name, context, bpc);
     this._writePipe(proto, pipe);
     return pipe;
   }
@@ -254,8 +274,6 @@ export class DynamicChangeDetector extends AbstractChangeDetector {
     return res;
   }
 }
-
-var _singleElementList = [null];
 
 function isSame(a, b) {
   if (a === b) return true;

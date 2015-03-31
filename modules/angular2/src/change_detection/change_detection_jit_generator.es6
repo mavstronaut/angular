@@ -15,6 +15,7 @@ import {
   RECORD_TYPE_PRIMITIVE_OP,
   RECORD_TYPE_KEYED_ACCESS,
   RECORD_TYPE_PIPE,
+  RECORD_TYPE_BINDING_PIPE,
   RECORD_TYPE_INTERPOLATE
   } from './proto_record';
 
@@ -63,6 +64,7 @@ import {
  *   }
  * }
  *
+ * ChangeDetector0.prototype.notifyOnAllChangesDone = function() {}
  *
  * ChangeDetector0.prototype.hydrate = function(context, locals) {
  *   this.context = context;
@@ -95,31 +97,35 @@ var UTIL = "ChangeDetectionUtil";
 var DISPATCHER_ACCESSOR = "this.dispatcher";
 var PIPE_REGISTRY_ACCESSOR = "this.pipeRegistry";
 var PROTOS_ACCESSOR = "this.protos";
+var MEMENTOS_ACCESSOR = "this.directiveMementos";
 var CONTEXT_ACCESSOR = "this.context";
 var CHANGE_LOCAL = "change";
 var CHANGES_LOCAL = "changes";
 var LOCALS_ACCESSOR = "this.locals";
 var TEMP_LOCAL = "temp";
 
-function typeTemplate(type:string, cons:string, detectChanges:string, setContext:string):string {
+function typeTemplate(type:string, cons:string, detectChanges:string,
+                      notifyOnAllChangesDone:string, setContext:string):string {
   return `
 ${cons}
 ${detectChanges}
+${notifyOnAllChangesDone}
 ${setContext};
 
 return function(dispatcher, pipeRegistry) {
-  return new ${type}(dispatcher, pipeRegistry, protos);
+  return new ${type}(dispatcher, pipeRegistry, protos, directiveMementos);
 }
 `;
 }
 
 function constructorTemplate(type:string, fieldsDefinitions:string):string {
   return `
-var ${type} = function ${type}(dispatcher, pipeRegistry, protos) {
+var ${type} = function ${type}(dispatcher, pipeRegistry, protos, directiveMementos) {
 ${ABSTRACT_CHANGE_DETECTOR}.call(this);
 ${DISPATCHER_ACCESSOR} = dispatcher;
 ${PIPE_REGISTRY_ACCESSOR} = pipeRegistry;
 ${PROTOS_ACCESSOR} = protos;
+${MEMENTOS_ACCESSOR} = directiveMementos;
 ${fieldsDefinitions}
 }
 
@@ -156,6 +162,18 @@ ${type}.prototype.detectChangesInRecords = function(throwOnChange) {
 `;
 }
 
+function notifyOnAllChangesDoneTemplate(type:string, body:string):string {
+  return `
+${type}.prototype.notifyOnAllChangesDone = function() {
+  ${body}
+}
+`;
+}
+
+function onAllChangesDoneTemplate(index:number):string {
+  return `${DISPATCHER_ACCESSOR}.onAllChangesDone(${MEMENTOS_ACCESSOR}[${index}]);`;
+}
+
 
 function bodyTemplate(localDefinitions:string, changeDefinitions:string, records:string):string {
   return `
@@ -180,14 +198,14 @@ if (${CHANGES_LOCAL} && ${CHANGES_LOCAL}.length > 0) {
 `;
 }
 
-function pipeCheckTemplate(context:string, pipe:string, pipeType:string,
+function pipeCheckTemplate(context:string, bindingPropagationConfig:string, pipe:string, pipeType:string,
                                   value:string, change:string, addRecord:string, notify:string):string{
   return `
 if (${pipe} === ${UTIL}.unitialized()) {
-  ${pipe} = ${PIPE_REGISTRY_ACCESSOR}.get('${pipeType}', ${context});
+  ${pipe} = ${PIPE_REGISTRY_ACCESSOR}.get('${pipeType}', ${context}, ${bindingPropagationConfig});
 } else if (!${pipe}.supports(${context})) {
   ${pipe}.onDestroy();
-  ${pipe} = ${PIPE_REGISTRY_ACCESSOR}.get('${pipeType}', ${context});
+  ${pipe} = ${PIPE_REGISTRY_ACCESSOR}.get('${pipeType}', ${context}, ${bindingPropagationConfig});
 }
 
 ${CHANGE_LOCAL} = ${pipe}.transform(${context});
@@ -246,14 +264,16 @@ function addSimpleChangeRecordTemplate(protoIndex:number, oldValue:string, newVa
 export class ChangeDetectorJITGenerator {
   typeName:string;
   records:List<ProtoRecord>;
+  directiveMementos:List;
   localNames:List<String>;
   changeNames:List<String>;
   fieldNames:List<String>;
   pipeNames:List<String>;
 
-  constructor(typeName:string, records:List<ProtoRecord>) {
+  constructor(typeName:string, records:List<ProtoRecord>, directiveMementos:List) {
     this.typeName = typeName;
     this.records = records;
+    this.directiveMementos = directiveMementos;
 
     this.localNames = this.getLocalNames(records);
     this.changeNames = this.getChangeNames(this.localNames);
@@ -283,8 +303,10 @@ export class ChangeDetectorJITGenerator {
   }
 
   generate():Function {
-    var text = typeTemplate(this.typeName, this.genConstructor(), this.genDetectChanges(), this.genHydrate());
-    return new Function('AbstractChangeDetector', 'ChangeDetectionUtil', 'protos', text)(AbstractChangeDetector, ChangeDetectionUtil, this.records);
+    var text = typeTemplate(this.typeName, this.genConstructor(), this.genDetectChanges(),
+      this.genNotifyOnAllChangesDone(), this.genHydrate());
+    return new Function('AbstractChangeDetector', 'ChangeDetectionUtil', 'protos', 'directiveMementos', text)
+      (AbstractChangeDetector, ChangeDetectionUtil, this.records, this.directiveMementos);
   }
 
   genConstructor():string {
@@ -293,20 +315,20 @@ export class ChangeDetectorJITGenerator {
 
   genHydrate():string {
     return hydrateTemplate(this.typeName, this.genFieldDefinitions(),
-      pipeOnDestroyTemplate(this.getnonNullPipeNames()));
+      pipeOnDestroyTemplate(this.getNonNullPipeNames()));
   }
 
   genFieldDefinitions() {
     var fields = [];
     fields = fields.concat(this.fieldNames);
-    fields = fields.concat(this.getnonNullPipeNames());
+    fields = fields.concat(this.getNonNullPipeNames());
     return fieldDefinitionsTemplate(fields);
   }
 
-  getnonNullPipeNames():List<String> {
+  getNonNullPipeNames():List<String> {
     var pipes = [];
     this.records.forEach((r) => {
-      if (r.mode === RECORD_TYPE_PIPE) {
+      if (r.mode === RECORD_TYPE_PIPE || r.mode === RECORD_TYPE_BINDING_PIPE) {
         pipes.push(this.pipeNames[r.selfIndex]);
       }
     });
@@ -316,6 +338,20 @@ export class ChangeDetectorJITGenerator {
   genDetectChanges():string {
     var body = this.genBody();
     return detectChangesTemplate(this.typeName, body);
+  }
+
+  genNotifyOnAllChangesDone():string {
+    var notifications = [];
+    var mementos = this.directiveMementos;
+
+    for (var i = mementos.length - 1; i >= 0; --i) {
+      var memento = mementos[i];
+      if (memento.notifyOnAllChangesDone) {
+        notifications.push(onAllChangesDoneTemplate(i));
+      }
+    }
+
+    return notifyOnAllChangesDoneTemplate(this.typeName, notifications.join(";\n"));
   }
 
   genBody():string {
@@ -332,7 +368,7 @@ export class ChangeDetectorJITGenerator {
   }
 
   genRecord(r:ProtoRecord):string {
-    if (r.mode === RECORD_TYPE_PIPE) {
+    if (r.mode === RECORD_TYPE_PIPE || r.mode === RECORD_TYPE_BINDING_PIPE) {
       return this.genPipeCheck (r);
     } else {
       return this.genReferenceCheck(r);
@@ -345,11 +381,12 @@ export class ChangeDetectorJITGenerator {
     var newValue = this.localNames[r.selfIndex];
     var oldValue = this.fieldNames[r.selfIndex];
     var change = this.changeNames[r.selfIndex];
+    var bpc = r.mode === RECORD_TYPE_BINDING_PIPE ? "this.bindingPropagationConfig" : "null";
 
     var addRecord = addSimpleChangeRecordTemplate(r.selfIndex - 1, oldValue, newValue);
     var notify = this.genNotify(r);
 
-    return pipeCheckTemplate(context, pipe, r.name, newValue, change, addRecord, notify);
+    return pipeCheckTemplate(context, bpc, pipe, r.name, newValue, change, addRecord, notify);
   }
 
   genReferenceCheck(r:ProtoRecord):string {
@@ -360,7 +397,7 @@ export class ChangeDetectorJITGenerator {
     var addRecord = addSimpleChangeRecordTemplate(r.selfIndex - 1, oldValue, newValue);
     var notify = this.genNotify(r);
 
-    var check = referenceCheckTemplate(assignment, newValue, oldValue, change, r.lastInBinding ? addRecord : '', notify);;
+    var check = referenceCheckTemplate(assignment, newValue, oldValue, change, r.lastInBinding ? addRecord : '', notify);
     if (r.isPureFunction()) {
       return this.ifChangedGuard(r, check);
     } else {

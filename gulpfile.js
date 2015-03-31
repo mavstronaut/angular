@@ -154,7 +154,10 @@ var CONFIG = {
   copy: {
     js: {
       cjs: {
-        src: ['modules/**/README.js.md', 'modules/**/package.json', 'modules/**/*.cjs'],
+        src: [
+          'modules/**/*.md', '!modules/**/*.dart.md', 'modules/**/*.png',
+          'modules/**/*.cjs', 'modules/**/package.json'
+        ],
         pipes: {
           '**/*.cjs': gulpPlugins.rename({extname: '.js'}),
           '**/*.js.md': gulpPlugins.rename(function(file) {
@@ -173,7 +176,10 @@ var CONFIG = {
       }
     },
     dart: {
-      src: ['modules/**/README.dart.md', 'modules/**/*.dart', 'modules/*/pubspec.yaml', 'modules/**/*.css', '!modules/**/e2e_test/**'],
+      src: [
+        'modules/**/*.md', '!modules/**/*.js.md', 'modules/**/*.png',
+        'modules/**/*.dart', 'modules/*/pubspec.yaml', 'modules/**/*.css', '!modules/**/e2e_test/**'
+      ],
       pipes: {
         '**/*.dart': util.insertSrcFolder(gulpPlugins, SRC_FOLDER_INSERTION.dart),
         '**/*.dart.md': gulpPlugins.rename(function(file) {
@@ -747,7 +753,10 @@ gulp.task('build/packages.dart', function(done) {
   runSequence(
     ['build/transpile.dart.ts2dart', 'build/transpile.dart', 'build/html.dart', 'build/copy.dart', 'build/multicopy.dart'],
     'tests/transform.dart',
-    ['build/format.dart.ts2dart', 'build/format.dart'],
+    // the two format steps don't need to be sequential, but we have seen flakiness in
+    // dartstyle:format with connecting to localhost.
+    'build/format.dart.ts2dart',
+    'build/format.dart',
     'build/pubspec.dart',
     done
   );

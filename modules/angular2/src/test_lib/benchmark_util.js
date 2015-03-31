@@ -1,5 +1,5 @@
 import {BrowserDomAdapter} from 'angular2/src/dom/browser_adapter';
-import {document} from 'angular2/src/facade/browser';
+import {document, window} from 'angular2/src/facade/browser';
 import {NumberWrapper, BaseException, isBlank} from 'angular2/src/facade/lang';
 
 var DOM = new BrowserDomAdapter();
@@ -16,7 +16,7 @@ export function getStringParameter(name:string) {
   for (var i=0; i<els.length; i++) {
     el = els[i];
     var type = DOM.type(el);
-    if ((type !== 'radio' && type !== 'checkbox') || DOM.getChecked(el)) {
+    if ((type != 'radio' && type != 'checkbox') || DOM.getChecked(el)) {
       value = DOM.getValue(el);
       break;
     }
@@ -34,4 +34,11 @@ export function bindAction(selector:string, callback:Function) {
   DOM.on(el, 'click', function(_) {
     callback();
   });
+}
+
+export function microBenchmark(name, iterationCount, callback) {
+  var durationName = `${name}/${iterationCount}`;
+  window.console.time(durationName);
+  callback();
+  window.console.timeEnd(durationName);
 }

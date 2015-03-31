@@ -12,7 +12,11 @@ import {ViewContainer} from 'angular2/src/core/compiler/view_container';
 import {NgElement} from 'angular2/src/core/dom/element';
 import {LightDom, DestinationLightDom} from 'angular2/src/core/compiler/shadow_dom_emulation/light_dom';
 import {Directive} from 'angular2/src/core/annotations/annotations';
-import {BindingPropagationConfig} from 'angular2/src/core/compiler/binding_propagation_config';
+import {BindingPropagationConfig} from 'angular2/change_detection';
+
+class DummyDirective extends Directive {
+  constructor({lifecycle = []} = {}) { super({lifecycle: lifecycle}); }
+}
 
 @proxy
 @IMPLEMENTS(View)
@@ -79,14 +83,16 @@ class NeedsPropertySetter {
   propSetter;
   roleSetter;
   classSetter;
+  classWithDashSetter;
   styleSetter;
   unitSetter;
   constructor(@PropertySetter('title') propSetter: Function, @PropertySetter('attr.role') roleSetter: Function,
-    @PropertySetter('class.active') classSetter: Function, @PropertySetter('style.width') styleSetter: Function,
-    @PropertySetter('style.height.px') unitSetter: Function) {
+    @PropertySetter('class.active') classSetter: Function, @PropertySetter('class.foo-bar') classWithDashSetter: Function,
+    @PropertySetter('style.width') styleSetter: Function, @PropertySetter('style.height.px') unitSetter: Function) {
     this.propSetter = propSetter;
     this.roleSetter = roleSetter;
     this.classSetter = classSetter;
+    this.classWithDashSetter = classWithDashSetter;
     this.styleSetter = styleSetter;
     this.unitSetter = unitSetter;
   }
@@ -221,6 +227,18 @@ export function main() {
         var protoChild = new ProtoElementInjector(protoParent, 1, [], false, distance);
 
         expect(protoChild.directParent()).toEqual(null);
+      });
+
+      it("should allow for direct access using getDirectiveBindingAtIndex", function () {
+        var binding = DirectiveBinding.createFromBinding(
+          bind(SimpleDirective).toClass(SimpleDirective), null);
+        var proto = new ProtoElementInjector(null, 0, [binding]);
+
+        expect(proto.getDirectiveBindingAtIndex(0)).toBeAnInstanceOf(DirectiveBinding);
+        expect(() => proto.getDirectiveBindingAtIndex(-1)).toThrowError(
+          'Index -1 is out-of-bounds.');
+        expect(() => proto.getDirectiveBindingAtIndex(10)).toThrowError(
+          'Index 10 is out-of-bounds.');
       });
     });
   });
@@ -419,17 +437,6 @@ export function main() {
           'Index 10 is out-of-bounds.');
       });
 
-      it("should allow for direct access using getBindingAtIndex", function () {
-        var inj = injector([
-          DirectiveBinding.createFromBinding(bind(SimpleDirective).toClass(SimpleDirective), null)
-        ]);
-        expect(inj.getDirectiveBindingAtIndex(0)).toBeAnInstanceOf(DirectiveBinding);
-        expect(() => inj.getDirectiveBindingAtIndex(-1)).toThrowError(
-          'Index -1 is out-of-bounds.');
-        expect(() => inj.getDirectiveBindingAtIndex(10)).toThrowError(
-          'Index 10 is out-of-bounds.');
-      });
-
       it("should handle cyclic dependencies", function () {
         expect(() => {
           var bAneedsB = bind(A_Needs_B).toFactory((a) => new A_Needs_B(a), [B_Needs_A]);
@@ -442,10 +449,10 @@ export function main() {
           '(A_Needs_B -> B_Needs_A -> A_Needs_B)');
       });
 
-      it("should call onDestroy on directives subscribed to this event", function () {
-        var inj = injector([
-          DirectiveBinding.createFromType(DirectiveWithDestroy, new Directive({lifecycle: [onDestroy]}))
-        ]);
+      it("should call onDestroy on directives subscribed to this event", function() {
+        var inj = injector([DirectiveBinding.createFromType(
+            DirectiveWithDestroy,
+            new DummyDirective({lifecycle: [onDestroy]}))]);
         var destroy = inj.get(DirectiveWithDestroy);
         inj.clearDirectives();
         expect(destroy.onDestroyCounter).toBe(1);
@@ -481,7 +488,7 @@ export function main() {
         expect(inj.get(BindingPropagationConfig)).toEqual(config);
       });
     });
-    
+
     describe("createPrivateComponent", () => {
       it("should create a private component", () => {
         var inj = injector([]);
@@ -521,7 +528,9 @@ export function main() {
 
       it("should support rehydrating the private component", () => {
         var inj = injector([]);
-        inj.createPrivateComponent(DirectiveWithDestroy, new Directive({lifecycle: [onDestroy]}));
+        inj.createPrivateComponent(
+            DirectiveWithDestroy,
+            new DummyDirective({lifecycle: [onDestroy]}));
         var dir = inj.getPrivateComponent();
 
         inj.clearDirectives();
@@ -534,7 +543,7 @@ export function main() {
         expect(inj.getPrivateComponent()).not.toBe(null);
       });
     });
-    
+
     describe('event emitters', () => {
       it('should be injectable and callable', () => {
         var called = false;
@@ -567,12 +576,14 @@ export function main() {
         component.setProp('foobar');
         component.setRole('button');
         component.setClass(true);
+        component.classWithDashSetter(true);
         component.setStyle('40px')
         component.setStyleWithUnit(50);
 
         expect(div.title).toEqual('foobar');
         expect(DOM.getAttribute(div, 'role')).toEqual('button');
         expect(DOM.hasClass(div, 'active')).toEqual(true);
+        expect(DOM.hasClass(div, 'foo-bar')).toEqual(true);
         expect(DOM.getStyle(div, 'width')).toEqual('40px');
         expect(DOM.getStyle(div, 'height')).toEqual('50px');
       });

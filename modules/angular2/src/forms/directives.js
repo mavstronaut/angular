@@ -22,7 +22,6 @@ export class DefaultValueAccessor {
   onChange:Function;
 
   constructor(@PropertySetter('value') setValueProperty:Function) {
-    super();
     this._setValueProperty = setValueProperty;
     this.onChange = (_) => {};
   }
@@ -44,7 +43,6 @@ export class CheckboxControlValueAccessor {
   onChange:Function;
 
   constructor(cd:ControlDirective, @PropertySetter('checked') setCheckedProperty:Function) {
-    super();
     this._setCheckedProperty = setCheckedProperty;
     this.onChange = (_) => {};
     cd.valueAccessor = this; //ControlDirective should inject CheckboxControlDirective
@@ -59,20 +57,20 @@ export class CheckboxControlValueAccessor {
   lifecycle: [onChange],
   selector: '[control]',
   bind: {
-    'controlName' : 'control'
+    'controlOrName' : 'control'
   }
 })
 export class ControlDirective {
   _groupDirective:ControlGroupDirective;
 
-  controlName:string;
+  controlOrName:any;
   valueAccessor:any; //ControlValueAccessor
 
   validator:Function;
 
-  constructor(@Ancestor() groupDirective:ControlGroupDirective, valueAccessor:DefaultValueAccessor)  {
+  constructor(@Optional() @Ancestor() groupDirective:ControlGroupDirective, valueAccessor:DefaultValueAccessor)  {
     this._groupDirective = groupDirective;
-    this.controlName = null;
+    this.controlOrName = null;
     this.valueAccessor = valueAccessor;
     this.validator = Validators.nullValidator;
   }
@@ -84,7 +82,9 @@ export class ControlDirective {
   }
 
   _initialize() {
-    this._groupDirective.addDirective(this);
+    if(isPresent(this._groupDirective)) {
+      this._groupDirective.addDirective(this);
+    }
 
     var c = this._control();
     c.validator = Validators.compose([c.validator, this.validator]);
@@ -102,7 +102,11 @@ export class ControlDirective {
   }
 
   _control() {
-    return this._groupDirective.findControl(this.controlName);
+    if (isString(this.controlOrName)) {
+      return this._groupDirective.findControl(this.controlOrName);
+    } else {
+      return this.controlOrName;
+    }
   }
 }
 
@@ -120,7 +124,6 @@ export class ControlGroupDirective {
   _directives:List<ControlDirective>;
 
   constructor(@Optional() @Ancestor() groupDirective:ControlGroupDirective) {
-    super();
     this._groupDirective = groupDirective;
     this._directives = ListWrapper.create();
   }

@@ -19,6 +19,10 @@ import {
 } from 'traceur/src/Options';
 
 export class TypeToExpressionTransformer extends ParseTreeTransformer {
+  constructor(idGenerator, reporter, options) {
+    super(idGenerator, reporter);
+    this.options_ = options;
+  }
 
   typeModule() {
     return parseExpression([options.outputLanguage === 'es6' ? 'assert' : '$traceurRuntime']);

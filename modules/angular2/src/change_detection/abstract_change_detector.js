@@ -1,25 +1,35 @@
 import {isPresent} from 'angular2/src/facade/lang';
 import {List, ListWrapper} from 'angular2/src/facade/collection';
+import {BindingPropagationConfig} from './binding_propagation_config';
 import {ChangeDetector, CHECK_ALWAYS, CHECK_ONCE, CHECKED, DETACHED} from './interfaces';
 
 export class AbstractChangeDetector extends ChangeDetector {
-  children:List;
+  lightDomChildren:List;
+  shadowDomChildren:List;
   parent:ChangeDetector;
   mode:string;
+  bindingPropagationConfig:BindingPropagationConfig;
 
   constructor() {
     super();
-    this.children = [];
+    this.lightDomChildren = [];
+    this.shadowDomChildren = [];
+    this.bindingPropagationConfig = new BindingPropagationConfig(this);
     this.mode = CHECK_ALWAYS;
   }
 
   addChild(cd:ChangeDetector) {
-    ListWrapper.push(this.children, cd);
+    ListWrapper.push(this.lightDomChildren, cd);
     cd.parent = this;
   }
 
   removeChild(cd:ChangeDetector) {
-    ListWrapper.remove(this.children, cd);
+    ListWrapper.remove(this.lightDomChildren, cd);
+  }
+
+  addShadowDomChild(cd:ChangeDetector) {
+    ListWrapper.push(this.shadowDomChildren, cd);
+    cd.parent = this;
   }
 
   remove() {
@@ -38,17 +48,30 @@ export class AbstractChangeDetector extends ChangeDetector {
     if (this.mode === DETACHED || this.mode === CHECKED) return;
 
     this.detectChangesInRecords(throwOnChange);
-    this._detectChangesInChildren(throwOnChange);
+
+    this._detectChangesInLightDomChildren(throwOnChange);
+
+    this.notifyOnAllChangesDone();
+
+    this._detectChangesInShadowDomChildren(throwOnChange);
 
     if (this.mode === CHECK_ONCE) this.mode = CHECKED;
   }
 
   detectChangesInRecords(throwOnChange:boolean){}
+  notifyOnAllChangesDone(){}
 
-  _detectChangesInChildren(throwOnChange:boolean) {
-    var children = this.children;
-    for(var i = 0; i < children.length; ++i) {
-      children[i]._detectChanges(throwOnChange);
+  _detectChangesInLightDomChildren(throwOnChange:boolean) {
+    var c = this.lightDomChildren;
+    for(var i = 0; i < c.length; ++i) {
+      c[i]._detectChanges(throwOnChange);
+    }
+  }
+
+  _detectChangesInShadowDomChildren(throwOnChange:boolean) {
+    var c = this.shadowDomChildren;
+    for(var i = 0; i < c.length; ++i) {
+      c[i]._detectChanges(throwOnChange);
     }
   }
 
