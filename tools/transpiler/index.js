@@ -25,7 +25,7 @@ exports.reloadSources = function() {
 
 exports.compile = function compile(options, paths, source, reloadTraceur) {
   if (needsReload) {
-    reloadCompiler(reloadTraceur);
+    reloadCompiler(reloadTraceur, options);
     needsReload = false;
   }
   var inputPath, outputPath, moduleName;
@@ -202,6 +202,7 @@ function disableGetterSetterAssertionPatch() {
 // see https://github.com/google/traceur-compiler/issues/1706
 function useRttsAssertModuleForConvertingTypesToExpressions() {
   var traceurVersion = System.map['traceur'];
+  var options = System.get(traceurVersion + "/src/Options.js").options;
   var original = System.get(traceurVersion+'/src/codegeneration/TypeToExpressionTransformer').TypeToExpressionTransformer;
   var patch = System.get('transpiler/src/patch/TypeToExpressionTransformer').TypeToExpressionTransformer;
   for (var prop in patch.prototype) {
@@ -218,7 +219,8 @@ function useRttsAssertModuleForConvertingTypesToExpressions() {
         this.paramTypes_.atLeastOneParameterTyped = true;
       } else {
         // PATCH start
-        typeAnnotation = parseExpression(["assert.type.any"]);
+        var typeModule = options.outputLanguage === 'es6' ? 'assert' : '$traceurRuntime';
+        typeAnnotation = parseExpression([typeModule + ".type.any"]);
         // PATCH end
       }
 

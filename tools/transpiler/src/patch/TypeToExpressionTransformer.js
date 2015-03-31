@@ -14,8 +14,15 @@ import {
 import {
   parseExpression
 } from 'traceur/src/codegeneration/PlaceholderParser.js';
+import {
+  options
+} from 'traceur/src/Options';
 
 export class TypeToExpressionTransformer extends ParseTreeTransformer {
+
+  typeModule() {
+    return parseExpression([options.outputLanguage === 'es6' ? 'assert' : '$traceurRuntime']);
+  }
 
   transformTypeName(tree) {
     if (tree.moduleName) {
@@ -26,14 +33,14 @@ export class TypeToExpressionTransformer extends ParseTreeTransformer {
   }
 
   transformPredefinedType(tree) {
-    return parseExpression `assert.type.${tree.typeToken})`;
+    return parseExpression `${this.typeModule()}.type.${tree.typeToken})`;
   }
 
   transformTypeReference(tree) {
     var typeName = this.transformAny(tree.typeName);
     var args = this.transformAny(tree.args);
     var argumentList = new ArgumentList(tree.location, [typeName, ...args]);
-    return parseExpression `assert.genericType(${argumentList})`;
+    return parseExpression `${this.typeModule()}.genericType(${argumentList})`;
   }
 
   transformTypeArguments(tree) {
