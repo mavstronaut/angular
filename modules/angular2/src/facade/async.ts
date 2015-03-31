@@ -1,4 +1,4 @@
-/// <reference path="rx/ts/rx.d.ts" />
+/// <reference path="../../typings/rx/rx.all.d.ts" />
 
 // HACK: workaround for Traceur behavior.
 // It expects all transpiled modules to contain this marker.
@@ -7,10 +7,7 @@ export var __esModule = true;
 
 import {int, global, isPresent} from 'angular2/src/facade/lang';
 import {List} from 'angular2/src/facade/collection';
-
-// FIXME: hack around import problem with bad syntax
-import Rx from 'rx/dist/rx.all';
-// var Rx = require('rx/dist/rx.all');
+import * as Rx from 'rx';
 
 export var Promise = global.Promise;
 
