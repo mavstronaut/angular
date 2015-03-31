@@ -15,7 +15,8 @@ bower_components
 *.js.map
 
 # Or type definitions we mirror from github
-**/typings/**/*.d.ts
+# FIXME: alexeagle: we have local edits in here
+# **/typings/**/*.d.ts
 
 # Include when developing application packages.
 pubspec.lock
