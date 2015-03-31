@@ -127,8 +127,8 @@ var CONFIG = {
     options: {
       js: {
         dev: merge(true, _COMPILER_CONFIG_JS_DEFAULT, {
-          //typeAssertionModule: 'rtts_assert/rtts_assert',
-          typeAssertions: false,
+          typeAssertionModule: 'rtts_assert/rtts_assert',
+          typeAssertions: true,
           outputLanguage: 'es6'
         }),
         prod: merge(true, _COMPILER_CONFIG_JS_DEFAULT, {
@@ -136,7 +136,7 @@ var CONFIG = {
           outputLanguage: 'es6'
         }),
         cjs: merge(true, _COMPILER_CONFIG_JS_DEFAULT, {
-          //typeAssertionModule: 'rtts_assert/rtts_assert',
+          typeAssertionModule: 'rtts_assert/rtts_assert',
           typeAssertions: false,
           modules: 'commonjs'
         })
@@ -394,7 +394,7 @@ var ts2dart = require('gulp-ts2dart');
 gulp.task('build/transpile.dart.ts2dart', function() {
   gulp.src(['modules/angular2/src/di/*.js', 'modules/angular2/test/di/*.js', 'modules/angular2/src/test_lib/*.js'])
       .pipe(ts2dart.transpile())
-      .pipe(gulp.dest('dist/dart.ts2dart'))
+      .pipe(gulp.dest('dist/dart.ts2dart'));
 });
 gulp.task('build/format.dart.ts2dart', rundartpackage(gulp, gulpPlugins, {
   pub: DART_SDK.PUB,
