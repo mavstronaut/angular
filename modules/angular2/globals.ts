@@ -2,12 +2,12 @@
 /// <reference path="typings/hammerjs/hammerjs.d.ts" />
 /// <reference path="typings/zone/zone.d.ts" />
 /// <reference path="typings/es6-promise/es6-promise.d.ts" />
-/// <reference path="typings/typescript/lib.core.d.ts" />
-/// <reference path="typings/typescript/lib.dom.d.ts" />
-/// <reference path="typings/typescript/lib.symbol.d.ts" />
+/// <reference path="typings-stdlib/typescript/lib.core.d.ts" />
+/// <reference path="typings-stdlib/typescript/lib.dom.d.ts" />
+/// <reference path="typings-stdlib/typescript/lib.symbol.d.ts" />
 
 /**
- * This file contains declarations of global objects we reference in our code
+ * This file contains declarations of global symbols we reference in our code
  */
 
 declare var assert: any;
