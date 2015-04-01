@@ -229,7 +229,7 @@ export var BaseException = Error;
 // JS has NaN !== NaN
 export function looseIdentical(a, b):boolean {
   return a === b ||
-         typeof a === "number" && typeof b === "number" && isNaN(a) && isNaN(b);
+    typeof a === "number" && typeof b === "number" && isNaN(a) && isNaN(b);
 }
 
 // JS considers NaN is the same as NaN for map Key (while NaN !== NaN otherwise)
