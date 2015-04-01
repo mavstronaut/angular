@@ -18,6 +18,7 @@ var SELF_COMPILE_OPTIONS = {
 
 var needsReload = true;
 var oldSystemGet = System.get;
+var currentOptions;
 
 exports.reloadSources = function() {
   needsReload = true;
@@ -25,7 +26,7 @@ exports.reloadSources = function() {
 
 exports.compile = function compile(options, paths, source, reloadTraceur) {
   if (needsReload) {
-    reloadCompiler(reloadTraceur, options);
+    reloadCompiler(reloadTraceur);
     needsReload = false;
   }
   var inputPath, outputPath, moduleName;
@@ -43,10 +44,12 @@ exports.compile = function compile(options, paths, source, reloadTraceur) {
   var CompilerCls = System.get('transpiler/src/compiler').Compiler;
 
   var compiler = new CompilerCls(options, moduleName);
+  currentOptions = options;
   var result = {
     js: compiler.compile(source, inputPath, outputPath),
     sourceMap: null
   };
+  currentOptions = null;
 
   var sourceMapString = compiler.getSourceMap();
   if (sourceMapString) {
@@ -181,12 +184,12 @@ function disableGetterSetterAssertionPatch() {
 // see https://github.com/google/traceur-compiler/issues/1706
 function useRttsAssertModuleForConvertingTypesToExpressions() {
   var traceurVersion = System.map['traceur'];
-  var options = System.get(traceurVersion + "/src/Options.js").options;
   var original = System.get(traceurVersion+'/src/codegeneration/TypeToExpressionTransformer').TypeToExpressionTransformer;
   var patch = System.get('transpiler/src/patch/TypeToExpressionTransformer').TypeToExpressionTransformer;
   for (var prop in patch.prototype) {
     original.prototype[prop] = patch.prototype[prop];
   }
+  original.prototype.getOptions = function() { return currentOptions; };
 
   var TypeAssertionTransformer = System.get(traceurVersion+'/src/codegeneration/TypeAssertionTransformer').TypeAssertionTransformer;
   var createIdentifierExpression = System.get(traceurVersion+'/src/codegeneration/ParseTreeFactory').createIdentifierExpression;
@@ -198,7 +201,7 @@ function useRttsAssertModuleForConvertingTypesToExpressions() {
         this.paramTypes_.atLeastOneParameterTyped = true;
       } else {
         // PATCH start
-        var typeModule = options.outputLanguage === 'es6' ? 'assert' : '$traceurRuntime';
+        var typeModule = currentOptions.outputLanguage === 'es6' ? 'assert' : '$traceurRuntime';
         typeAnnotation = parseExpression([typeModule + ".type.any"]);
         // PATCH end
       }

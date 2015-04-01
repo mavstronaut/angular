@@ -14,14 +14,15 @@ import {
 import {
   parseExpression
 } from 'traceur/src/codegeneration/PlaceholderParser.js';
-import {
-  options
-} from 'traceur/src/Options';
 
 export class TypeToExpressionTransformer extends ParseTreeTransformer {
+  // Not used. Just required to call super() by traceur.
   constructor(idGenerator, reporter, options) {
     super(idGenerator, reporter);
-    this.options_ = options;
+  }
+
+  typeModule() {
+    return parseExpression([this.getOptions().outputLanguage === 'es6' ? 'assert' : '$traceurRuntime']);
   }
 
   typeModule() {
