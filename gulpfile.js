@@ -137,6 +137,7 @@ var CONFIG = {
         }),
         cjs: merge(true, _COMPILER_CONFIG_JS_DEFAULT, {
           typeAssertionModule: 'rtts_assert/rtts_assert',
+          // Don't use type assertions since this is partly transpiled by typescript
           typeAssertions: false,
           modules: 'commonjs'
         })
@@ -351,24 +352,6 @@ gulp.task('build/transpile.js.prod.es5', function() {
   });
 });
 
-gulp.task('build/transpile.es6.to.es5.with.typescript', function () {
-  var tsResult = gulp.src(['angular2/src/facade/*.es6', 'angular2/*.ts', 'angular2/typings/**/*.d.ts'], {cwd:'modules'})
-                     .pipe(sourcemaps.init())
-                     .pipe(tsc({
-
-      target: 'ES5',
-      module: /*system.js*/'commonjs',
-      allowNonTsExtensions: true,
-      typescript: require('typescript'),
-      emitOnError: true
-    })).js;
-  return merge([
-    // Write external sourcemap next to the js file
-    tsResult.js.pipe(sourcemaps.write('.')).pipe(gulp.dest('dist/js/es6_to_es5_with_typescript')),
-    tsResult.js.pipe(gulp.dest('dist/js/es6_to_es5_with_typescript')),
-  ]);
-});
-
 gulp.task('build/transpile.js.prod', function(done) {
   runSequence(
     'build/transpile.js.prod.es6',
@@ -396,17 +379,27 @@ gulp.task('build/transpile.dart', transpile(gulp, gulpPlugins, {
   srcFolderInsertion: CONFIG.srcFolderInsertion.dart
 }));
 
-var ts2dart = require('gulp-ts2dart');
 gulp.task('build/transpile.dart.ts2dart', function() {
-  gulp.src(['modules/angular2/src/di/*.js', 'modules/angular2/test/di/*.js', 'modules/angular2/src/test_lib/*.js'])
+  return gulp.src(CONFIG.transpile.src.dart)
       .pipe(ts2dart.transpile())
-      .pipe(gulp.dest('dist/dart.ts2dart'));
+      .pipe(gulp.dest('dist/dart.ts2dart'))
 });
 gulp.task('build/format.dart.ts2dart', rundartpackage(gulp, gulpPlugins, {
   pub: DART_SDK.PUB,
   packageName: CONFIG.formatDart.packageName,
   args: ['dart_style:format', '-w', 'dist/dart.ts2dart']
 }));
+
+// Temporary tasks for development on ts2dart. Will likely fail.
+gulp.task('build/transpile.dart.ts2dart.all', function() {
+  return gulp.src(CONFIG.transpile.src.js)
+      .pipe(ts2dart.transpile())
+      .pipe(util.insertSrcFolder(gulpPlugins, CONFIG.srcFolderInsertion.dart))
+      .pipe(gulp.dest('dist/dart.ts2dart'));
+});
+gulp.task('ts2dart', function(done) {
+ runSequence('build/transpile.dart.ts2dart.all', 'build/format.dart.ts2dart', done);
+});
 
 // ------------
 // html
