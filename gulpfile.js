@@ -796,8 +796,8 @@ gulp.task('build.dart', function(done) {
 gulp.task('build.js.dev', function(done) {
   runSequence(
     'broccoli.js.dev',
-    ['build/html.js.dev', 'build/copy.js.dev', 'build/multicopy.js.dev.es6'],
-    'build/checkCircularDependencies',
+    //['build/html.js.dev'], //, 'build/copy.js.dev', 'build/multicopy.js.dev.es6'],
+    //'build/checkCircularDependencies',
     done
   );
 });
