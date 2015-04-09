@@ -2,6 +2,8 @@ var broccoli = require('broccoli');
 var copyDereferenceSync = require('copy-dereference').sync;
 var fse = require('fs-extra');
 var path = require('path');
+var printSlowTrees = require('broccoli-slow-trees');
+
 
 module.exports = broccoliBuild;
 var broccoliExecuted = {};
@@ -29,6 +31,8 @@ function broccoliBuild(tree, outputRoot) {
   var builder = new broccoli.Builder(tree);
   return builder.build()
     .then(function (hash) {
+      printSlowTrees(hash.graph);
+
       var dir = hash.directory;
       try {
         copyDereferenceSync(path.join(dir, outputRoot), distPath);

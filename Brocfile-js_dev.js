@@ -31,30 +31,35 @@ es6DevTree = stew.rename(es6DevTree, function(relativePath) {
 var es5DevTree = new TraceurCompiler(es6DevTree, '.js', {modules: 'instantiate', sourceMaps: true});
 es5DevTree = stew.rename(es5DevTree, '.es6.map', '.js.map');
 
-var vendorScriptsTree = flatten(new Funnel('.', {include: [
-  'node_modules/es6-module-loader/dist/es6-module-loader-sans-promises.src.js',
-  'node_modules/zone.js/zone.js',
-  'node_modules/zone.js/long-stack-trace-zone.js',
-  'node_modules/systemjs/dist/system.src.js',
-  'node_modules/systemjs/lib/extension-register.js',
-  'node_modules/systemjs/lib/extension-cjs.js',
-  'node_modules/rx/dist/rx.all.js',
-  'tools/build/snippets/runtime_paths.js',
-  path.relative(__dirname, TraceurCompiler.RUNTIME_PATH)
+var traceurRuntime = path.relative(__dirname, TraceurCompiler.RUNTIME_PATH);
+var vendorScriptsTree = flatten(mergeTrees([
+  new Funnel('node_modules/es6-module-loader/dist/', {include:['es6-module-loader-sans-promises.src.js']}),
+  new Funnel('node_modules/zone.js/', {include:['zone.js']}),
+  new Funnel('node_modules/zone.js/', {include:['long-stack-trace-zone.js']}),
+  new Funnel('node_modules/systemjs/dist/', {include:['system.src.js']}),
+  new Funnel('node_modules/systemjs/lib/', {include:['extension-register.js']}),
+  new Funnel('node_modules/systemjs/lib/', {include:['extension-cjs.js']}),
+  new Funnel('node_modules/rx/dist/', {include:['rx.all.js']}),
+  new Funnel('tools/build/snippets/', {include:['runtime_paths.js']}),
+  new Funnel(path.dirname(traceurRuntime), {include:[path.basename(traceurRuntime)]})
+]));
+
+var vendorScripts_benchmark = flatten(new Funnel('tools/build/snippets', { include: [
+  'url_params_to_form.js'
+]}));
+
+var vendorScripts_benchmarks_external = flatten(new Funnel('node_modules/angular', { include: [
+  'angular.js'
 ]}));
 
 var servingTrees = [];
 function copyVendorScriptsTo(destDir) {
   servingTrees.push(pickFiles(vendorScriptsTree, {srcDir: '/', destDir: destDir}));
   if (destDir.indexOf('benchmarks') > -1) {
-    servingTrees.push(pickFiles(flatten(new Funnel('.', {include: [
-      'tools/build/snippets/url_params_to_form.js'
-    ]})), {srcDir: '/', destDir: destDir}));
+      servingTrees.push(pickFiles(vendorScripts_benchmark, {srcDir: '/', destDir: destDir}));
   }
   if (destDir.indexOf('benchmarks_external') > -1) {
-    servingTrees.push(pickFiles(flatten(new Funnel('.', {include: [
-      'node_modules/angular/angular.js'
-    ]})), {srcDir: '/', destDir: destDir}));
+      servingTrees.push(pickFiles(vendorScripts_benchmarks_external, {srcDir: '/', destDir: destDir}));
   }
 }
 // TODO(broccoli): are these needed here, if not loaded by a script tag??
@@ -76,7 +81,7 @@ htmlTree = replace(htmlTree, {
 htmlTree = replace(htmlTree, {
   files: ['benchmarks/**'],
   patterns: [
-    { match: /\$SCRIPTS\$/, replacement: '<script src="url_params_to_form.js" type="text/javascript"></script>\n' + htmlReplace('SCRIPTS')}
+    { match: /\$SCRIPTS\$/, replacement: htmlReplace('SCRIPTS_benchmarks')}
   ],
   replaceWithPath: function(relativePath, result) {
     copyVendorScriptsTo(path.dirname(relativePath));
@@ -86,7 +91,7 @@ htmlTree = replace(htmlTree, {
 htmlTree = replace(htmlTree, {
   files: ['benchmarks_external/**'],
   patterns: [
-    { match: /\$SCRIPTS\$/, replacement: '<script src="angular.js" type="text/javascript"></script>\n<script src="url_params_to_form.js" type="text/javascript"></script>\n' + htmlReplace('SCRIPTS')}
+    { match: /\$SCRIPTS\$/, replacement: htmlReplace('SCRIPTS_benchmarks_external')}
   ],
   replaceWithPath: function(relativePath, result) {
     copyVendorScriptsTo(path.dirname(relativePath));
@@ -95,7 +100,10 @@ htmlTree = replace(htmlTree, {
 });
 var scripts = mergeTrees(servingTrees, {overwrite:true});
 var polymer = stew.mv(
-  flatten(new Funnel('.', {include: ['bower_components/polymer/lib/polymer.html']})),
+  flatten(new Funnel('.', {include: [
+    'bower_components/polymer/lib/polymer.html',
+    'tools/build/snippets/url_params_to_form.js'
+  ]})),
   'benchmarks_external/src/tree/polymer');
 htmlTree = mergeTrees([htmlTree, scripts, polymer]);
 

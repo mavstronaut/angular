@@ -47,6 +47,8 @@
     "broccoli-funnel": "^0.2.3",
     "broccoli-merge-trees": "^0.2.1",
     "broccoli-replace": "alexeagle/broccoli-replace",
+    "broccoli-slow-trees": "^1.1.0",
+    "broccoli-static-compiler": "^0.2.1",
     "broccoli-stew": "^0.2.1",
     "broccoli-writer": "^0.1.1",
     "canonical-path": "0.0.2",
