@@ -3,7 +3,8 @@ var path = require('canonical-path');
 var _ = require('lodash');
 var ts = require('typescript');
 
-module.exports = function readTypeScriptModules(tsParser, readFilesProcessor, modules, getFileInfo, getExportDocType, getContent, log) {
+module.exports = function readTypeScriptModules(tsParser, readFilesProcessor, modules, getFileInfo,
+                                                getExportDocType, getContent, log) {
 
   return {
     $runAfter: ['files-read'],
@@ -12,8 +13,8 @@ module.exports = function readTypeScriptModules(tsParser, readFilesProcessor, mo
     $validate: {
       sourceFiles: {presence: true},
       basePath: {presence: true},
-      hidePrivateMembers: { inclusion: [true, false] },
-      sortClassMembers: { inclusion: [true, false] },
+      hidePrivateMembers: {inclusion: [true, false]},
+      sortClassMembers: {inclusion: [true, false]},
       ignoreExportsMatching: {}
     },
 
@@ -64,7 +65,7 @@ module.exports = function readTypeScriptModules(tsParser, readFilesProcessor, mo
 
           // Generate docs for each of the export's members
           if (resolvedExport.flags & ts.SymbolFlags.HasMembers) {
-
+            
             exportDoc.members = [];
             for(var memberName in resolvedExport.members) {
               log.silly('>>>>>> member: ' + memberName + ' from ' + exportDoc.id + ' in ' + moduleDoc.id);
@@ -115,6 +116,18 @@ module.exports = function readTypeScriptModules(tsParser, readFilesProcessor, mo
   }
 
   function createExportDoc(name, exportSymbol, moduleDoc, basePath, typeChecker) {
+    exportSymbol.declarations.forEach(function(decl) {
+      if (decl.heritageClauses) {
+        decl.heritageClauses.forEach(function(heritage) {
+          if (heritage.token == ts.SyntaxKind.ExtendsKeyword) {
+            heritage.types.forEach(function(typ) {
+              name = name + " extends " + typ.getFullText();
+            });
+          }
+        });
+      }
+    });
+
     var exportDoc = {
       docType: getExportDocType(exportSymbol),
       name: name,
