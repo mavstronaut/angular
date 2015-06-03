@@ -180,14 +180,21 @@ module.exports = function readTypeScriptModules(tsParser, readFilesProcessor, mo
   function getParameters(typeChecker, symbol) {
     var declaration = symbol.valueDeclaration || symbol.declarations[0];
     var sourceFile = ts.getSourceFileOfNode(declaration);
-    if(!declaration.parameters) {
+    if (!declaration.parameters) {
       var location = getLocation(symbol);
       throw new Error('missing declaration parameters for "' + symbol.name +
         '" in ' + sourceFile.fileName +
         ' at line ' + location.start.line);
     }
     return declaration.parameters.map(function(parameter) {
-      return getText(sourceFile, parameter).trim();
+      var paramText = getText(sourceFile, parameter.name);
+      if (parameter.questionToken != undefined) {
+        paramText += '?';
+      }
+      if (parameter.type) {
+        paramText += ':' + getText(sourceFile, parameter.type);
+      }
+      return paramText.trim();
     });
   }
 
