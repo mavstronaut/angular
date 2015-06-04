@@ -17,6 +17,9 @@ export {DomRenderer, DOCUMENT_TOKEN} from 'angular2/src/render/dom/dom_renderer'
 export {AbstractChangeDetector} from './src/change_detection/abstract_change_detector';
 export {ProtoRecord} from './src/change_detection/proto_record';
 export * from './src/core/compiler/element_injector';
+// FIXME: this is a workaround for https://github.com/angular/angular/issues/2356
+// We export the Directive *annotation* instead of the *decorator*.
+// But it breaks the build.
 export {Directive, LifecycleEvent} from './src/core/annotations_impl/annotations';
 export {FormDirective} from './src/forms/directives/form_directive';
 export {ControlContainerDirective} from './src/forms/directives/control_container_directive';
