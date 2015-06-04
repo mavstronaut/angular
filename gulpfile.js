@@ -252,6 +252,13 @@ gulp.task('build/checkCircularDependencies', function (done) {
   done();
 });
 
+// check that dependencies of exported symbols are also exported
+gulp.task('build/checkTransitiveExports', ['!build.tools'], function(done) {
+  var doCheck = require('./dist/tools/build/checkTransitiveExports').default;
+  doCheck('modules/angular2/angular2');
+  done();
+});
+
 // ------------------
 // web servers
 gulp.task('serve.js.dev', ['build.js.dev'], function(neverDone) {
@@ -646,6 +653,7 @@ gulp.task('build.js.dev', ['build/clean.js'], function(done) {
   runSequence(
     'broccoli.js.dev',
     'build/checkCircularDependencies',
+    'build/checkTransitiveExports',
     'check-format',
     done
   );
