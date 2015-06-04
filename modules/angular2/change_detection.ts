@@ -5,14 +5,14 @@
  * Change detection enables data binding in Angular.
  */
 
-export {
+export * /*{
   ASTWithSource,
   AST,
   AstTransformer,
   AccessMember,
   LiteralArray,
   ImplicitReceiver
-} from './src/change_detection/parser/ast';
+}*/ from './src/change_detection/parser/ast';
 
 export {Lexer} from './src/change_detection/parser/lexer';
 export {Parser} from './src/change_detection/parser/parser';

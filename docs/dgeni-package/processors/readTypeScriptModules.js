@@ -188,7 +188,7 @@ module.exports = function readTypeScriptModules(tsParser, readFilesProcessor, mo
     }
     return declaration.parameters.map(function(parameter) {
       var paramText = getText(sourceFile, parameter.name);
-      if (parameter.questionToken != undefined) {
+      if (parameter.questionToken || parameter.initializer) {
         paramText += '?';
       }
       if (parameter.type) {

@@ -22,6 +22,15 @@ interface List<T> extends Array<T> {}
 interface Map<K,V> {}
 interface StringMap<K,V> extends Map<K,V> {}
 interface Type {}
+
+declare module "angular2/angular2" {
+  // See https://github.com/Microsoft/TypeScript/issues/1168
+  class BaseException /* extends Error */ {
+    message;
+    stack;
+    toString(): string;
+  }
+}
 {% for module in doc.modules %}
 {$ commentBlock(module, 1) $}
 declare module "{$ module.id $}" {
