@@ -9,7 +9,7 @@ import {
   AccessMember,
   LiteralArray,
   ImplicitReceiver
-} from 'angular2/src/change_detection/parser/ast';
+} from 'angular2/change_detection';
 
 import {DomProtoView, DomProtoViewRef, resolveInternalDomProtoView} from './proto_view';
 import {ElementBinder, Event, HostAction} from './element_binder';
