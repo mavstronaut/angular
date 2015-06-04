@@ -16,7 +16,12 @@
 // Please do not create manual edits or send pull requests
 // modifying this file.
 // ***********************************************************
+
+// Angular depends transitively on these libraries.
+// If you don't have them installed you can run
+// $ tsd query es6-promise rx rx-lite --action install --save
 ///<reference path="../es6-promise/es6-promise.d.ts"/>
+///<reference path="../rx/rx.d.ts"/>
 
 interface List<T> extends Array<T> {}
 interface Map<K,V> {}
@@ -24,6 +29,27 @@ interface StringMap<K,V> extends Map<K,V> {}
 interface Type {}
 
 declare module "angular2/angular2" {
+  type SetterFn = typeof Function;
+  type int = number;
+
+  // Workarounds for re-exports with different namespace
+  module viewModule {
+    interface AppView {}
+    interface AppProtoView {}
+  }
+  module modelModule {
+    interface Control {}
+    interface ControlArray {}
+    interface ControlGroup {}
+  }
+  module renderApi {
+    interface EventBinding {}
+    interface RenderProtoViewRef {}
+  }
+  module avmModule {
+    interface AppViewManager {}
+  }
+
   // See https://github.com/Microsoft/TypeScript/issues/1168
   class BaseException /* extends Error */ {
     message;

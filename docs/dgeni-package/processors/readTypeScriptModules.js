@@ -117,6 +117,10 @@ module.exports = function readTypeScriptModules(tsParser, readFilesProcessor, mo
 
   function createExportDoc(name, exportSymbol, moduleDoc, basePath, typeChecker) {
     exportSymbol.declarations.forEach(function(decl) {
+      var sourceFile = ts.getSourceFileOfNode(decl);
+      if (decl.typeParameters) {
+        name = name + '<' + getText(sourceFile, decl.typeParameters) + '>';
+      }
       if (decl.heritageClauses) {
         decl.heritageClauses.forEach(function(heritage) {
           if (heritage.token == ts.SyntaxKind.ExtendsKeyword) {
