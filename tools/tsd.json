@@ -16,6 +16,12 @@
     },
     "jasmine/jasmine.d.ts": {
       "commit": "055b3172e8eb374a75826710c4d08677872620d3"
+    },
+    "glob/glob.d.ts": {
+      "commit": "612ac88c26d767ca586908da31a4675867d8ee16"
+    },
+    "minimatch/minimatch.d.ts": {
+      "commit": "612ac88c26d767ca586908da31a4675867d8ee16"
     }
   }
 }

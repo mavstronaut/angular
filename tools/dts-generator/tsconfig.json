@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "preserveConstEnums": true,
+        "sourceMap": true,
+        "noImplicitAny": false
+    },
+    "files": [
+        "index.ts",
+        "index.spec.ts",
+        "testdata/child.ts",
+        "testdata/top.ts",
+        "testdata/vehicles.ts",
+        "../typings/jasmine/jasmine.d.ts"
+    ]
+}
