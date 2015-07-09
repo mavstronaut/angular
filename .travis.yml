@@ -80,9 +80,7 @@ deploy:
     skip_cleanup: true
     # serve to public at https://storage.googleapis.com/angular2-snapshots/SHA/dart_stable/path/to.file
     acl: public-read
-    # Upload just enough files to mirror pub.
-    # Be careful how many files are uploaded. 10k files makes the build time out. 1k seems to work.
-    local-dir: dist/dart
+    local-dir: deploy
     upload-dir: $TRAVIS_COMMIT/dart_stable
     on:
       branch: travis_deploy
