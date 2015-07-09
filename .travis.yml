@@ -71,7 +71,7 @@ deploy:
     # This is for project angular-github-babysitter
     access_key_id: GOOGIOQTDBEOPBUAWFZQ
     secret_access_key:
-      secure: "MEDggllZ5fw4wI9CEUi8WR6jKsKXqdRF/DLxSNC2JpzM5RlVeBm0uqjntYT1Cf1dASvQ2/+vZCUikL/3A48NcoEYRHXGmxu8D6t/SvleQD8Xv434xFOdsa2QqP/HiCtqCLOI5jJz1JVoB5nNyKKZ33ogTUL1LV1TfcrAioyizW8="
+      secure: "bLsuO92Pamn/cQOyi6Djel6fwSWvPGqKx7aTtu4Hae98GFRBBbB2R0NRPZpwPsCY4/zW83ilP+hjDbXNkzjKPW+ZRA5RdFxQruBB16G+tR62P/7iGaPbZP2YsTLuiJ1Q9KuwQzy66+V6+qE4/EO//Ms+ObIs4+u6c8dVscXEgwY="
     # this bucket has a lifecycle to delete after 1 year:
     # $ echo '{"rule": [{"action": {"type": "Delete"}, "condition": {"age": 365}}]}' > lifecycle.json
     # $ gsutil lifecycle set lifecycle.json gs://angular2-snapshots
@@ -82,10 +82,10 @@ deploy:
     acl: public-read
     # Upload just enough files to mirror pub.
     # Be careful how many files are uploaded. 10k files makes the build time out. 1k seems to work.
-    local-dir: dist/dart/angular2
+    local-dir: dist/dart
     upload-dir: $TRAVIS_COMMIT/dart_stable
     on:
-      branch: master
-      repo: angular/angular
+      branch: travis_deploy
+      repo: alexeagle/angular
       condition: "$MODE = dart && $DART_CHANNEL = stable"
 
