@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ev
 
 echo =============================================================================
 echo EXPERIMENTAL DART BUILD

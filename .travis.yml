@@ -37,7 +37,7 @@ env:
     # - MODE=saucelabs DART_CHANNEL=dev
     - MODE=dart_experimental DART_CHANNEL=dev
     - MODE=js DART_CHANNEL=dev
-    - MODE=lint DART_CHANNEL=dev
+    - MODE=static-checks DART_CHANNEL=dev
 
 matrix:
   allow_failures:
@@ -69,7 +69,9 @@ before_script:
 - ./scripts/ci/presubmit-queue-setup.sh
 
 script:
-- ./scripts/ci/build_and_test.sh ${MODE}
+- ./node_modules/.bin/gulp build.${MODE}
+- if [ -e "./scripts/ci/build_${MODE}.sh" ]; then ./scripts/ci/build_${MODE}.sh; fi
+- if [ -e "./scripts/ci/test_${MODE}.sh" ]; then ./scripts/ci/test_${MODE}.sh; fi
 
 after_script:
 - ./scripts/ci/print-logs.sh

@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -o pipefail
+set -ev -o pipefail
 
 if [ "$TRAVIS_REPO_SLUG" = "angular/angular" ]; then
   if [[ $TRAVIS_BRANCH == "presubmit-"* ]]; then

@@ -742,7 +742,7 @@ gulp.task('pre-test-checks', function(done) {
 // Checks which should fail the build, but should not block us running the tests.
 // This task is run in a separate travis worker, so these checks provide faster
 // feedback while allowing tests to execute.
-gulp.task('static-checks', ['!build.tools'], function(done) {
+gulp.task('build.static-checks', ['!build.tools'], function(done) {
   runSequence(
     ['enforce-format', 'lint', 'test.typings'],
     sequenceComplete(done));

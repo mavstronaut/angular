@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ev
 SCRIPT_DIR=$(dirname $0)
 cd $SCRIPT_DIR
 

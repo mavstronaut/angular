@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ev
 
 CPUPATH=/sys/devices/system/cpu
 WAKE_LOCK_NAME=ngperf
