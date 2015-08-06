@@ -423,7 +423,7 @@ export class Injector {
    */
   static resolve(bindings: List<Type | Binding | List<any>>): List<ResolvedBinding> {
     var resolvedBindings = _resolveBindings(bindings);
-    var flatten = _flattenBindings(resolvedBindings, new Map());
+    var flatten = _flattenBindings(resolvedBindings, new Map<number, ResolvedBinding>());
     return _createListOfBindings(flatten);
   }
 

@@ -30,9 +30,9 @@ import {parseAndAssignParamString} from 'angular2/src/router/helpers';
  * components.
  */
 export class RouteRecognizer {
-  names: Map<string, PathRecognizer> = new Map();
-  redirects: Map<string, string> = new Map();
-  matchers: Map<RegExp, PathRecognizer> = new Map();
+  names = new Map<string, PathRecognizer>();
+  redirects = new Map<string, string>();
+  matchers = new Map<RegExp, PathRecognizer>();
 
   constructor(public isRoot: boolean = false) {}
 

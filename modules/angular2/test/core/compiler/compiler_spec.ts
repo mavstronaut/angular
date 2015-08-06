@@ -570,7 +570,7 @@ function createProtoView(elementBinders = null, type: renderApi.ViewType = null,
     type = renderApi.ViewType.COMPONENT;
   }
   var pv = new AppProtoView(type, isEmbeddedFragment, new renderApi.RenderProtoViewRef(), null,
-                            null, new Map(), null);
+                            null, new Map<string, number>(), null);
   if (isBlank(elementBinders)) {
     elementBinders = [];
   }
@@ -673,7 +673,7 @@ class SpyDirectiveResolver extends SpyObject {
 }
 
 class FakeViewResolver extends ViewResolver {
-  _cmpViews: Map<Type, viewAnn.View> = new Map();
+  _cmpViews = new Map<Type, viewAnn.View>();
 
   constructor() { super(); }
 

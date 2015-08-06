@@ -21,7 +21,7 @@ import {ElementBinder} from './element_binder';
 import {ProtoElementInjector, DirectiveBinding} from './element_injector';
 
 class BindingRecordsCreator {
-  _directiveRecordsMap: Map<number, DirectiveRecord> = new Map();
+  _directiveRecordsMap = new Map<number, DirectiveRecord>();
 
   getBindingRecords(textBindings: List<ASTWithSource>,
                     elementBinders: List<renderApi.ElementBinder>,
@@ -274,7 +274,7 @@ function _collectNestedProtoViewsVariableBindings(
 }
 
 function _createVariableBindings(renderProtoView): Map<string, string> {
-  var variableBindings = new Map();
+  var variableBindings = new Map<string, string>();
   MapWrapper.forEach(renderProtoView.variableBindings,
                      (mappedName, varName) => { variableBindings.set(varName, mappedName); });
   return variableBindings;
@@ -306,7 +306,7 @@ function _createVariableNames(parentVariableNames: List<string>, renderProtoView
 
 export function createVariableLocations(elementBinders: List<renderApi.ElementBinder>):
     Map<string, number> {
-  var variableLocations = new Map();
+  var variableLocations = new Map<string, number>();
   for (var i = 0; i < elementBinders.length; i++) {
     var binder = elementBinders[i];
     MapWrapper.forEach(binder.variableBindings,
@@ -399,7 +399,7 @@ function _createElementBinder(protoView: AppProtoView, boundElementIndex, render
 export function createDirectiveVariableBindings(renderElementBinder: renderApi.ElementBinder,
                                                 directiveBindings: List<DirectiveBinding>):
     Map<string, number> {
-  var directiveVariableBindings = new Map();
+  var directiveVariableBindings = new Map<string, number>();
   MapWrapper.forEach(renderElementBinder.variableBindings, (templateName, exportAs) => {
     var dirIndex = _findDirectiveIndexByExportAs(renderElementBinder, directiveBindings, exportAs);
     directiveVariableBindings.set(templateName, dirIndex);

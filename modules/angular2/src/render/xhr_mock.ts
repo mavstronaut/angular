@@ -5,13 +5,12 @@ import {PromiseCompleter, PromiseWrapper, Promise} from 'angular2/src/facade/asy
 
 export class MockXHR extends XHR {
   private _expectations: List<_Expectation>;
-  private _definitions: Map<string, string>;
+  private _definitions = new Map<string, string>();
   private _requests: List<_PendingRequest>;
 
   constructor() {
     super();
     this._expectations = [];
-    this._definitions = new Map();
     this._requests = [];
   }
 

@@ -30,10 +30,9 @@ var unused: Response;
 
 class MockBrowserJsonp extends BrowserJsonp {
   src: string;
-  callbacks: Map<string, (data: any) => any>;
+  callbacks = new Map<string, (data: any) => any>();
   constructor() {
     super();
-    this.callbacks = new Map();
   }
 
   addEventListener(type: string, cb: (data: any) => any) { this.callbacks.set(type, cb); }

@@ -164,7 +164,7 @@ export class AppView implements ChangeDispatcher, RenderEventDispatcher {
    * @param {int} boundElementIndex
    */
   triggerEventHandlers(eventName: string, eventObj: Event, boundElementIndex: int): void {
-    var locals = new Map();
+    var locals = new Map<string, any>();
     locals.set('$event', eventObj);
     this.dispatchEvent(boundElementIndex, eventName, locals);
   }
@@ -327,7 +327,7 @@ class EventEvaluationError extends BaseException {
  */
 export class AppProtoView {
   elementBinders: List<ElementBinder> = [];
-  protoLocals: Map<string, any> = new Map();
+  protoLocals = new Map<string, any>();
   mergeMapping: AppProtoViewMergeMapping;
   ref: ProtoViewRef;
 
@@ -379,7 +379,7 @@ export class AppProtoView {
       var eventName = eventBinding.fullName;
       var event = StringMapWrapper.get(events, eventName);
       if (isBlank(event)) {
-        event = new Map();
+        event = new Map<number, AST>();
         StringMapWrapper.set(events, eventName, event);
       }
       event.set(directiveIndex, eventBinding.source);

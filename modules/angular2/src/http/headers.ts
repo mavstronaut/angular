@@ -24,7 +24,7 @@ export class Headers {
   _headersMap: Map<string, List<string>>;
   constructor(headers?: Headers | StringMap<string, any>) {
     if (isBlank(headers)) {
-      this._headersMap = new Map();
+      this._headersMap = new Map<string, List<string>>();
       return;
     }
 

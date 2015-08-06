@@ -9,7 +9,7 @@ export var StringMap = global.Object;
 // Map constructor.  We work around that by manually adding the items.
 var createMapFromPairs: {(pairs: List<any>): Map<any, any>} = (function() {
   try {
-    if (new Map([1, 2]).size === 2) {
+    if (new Map(<any>[1, 2]).size === 2) {
       return function createMapFromPairs(pairs: List<any>):
           Map<any, any> { return new Map(pairs); };
     }
@@ -76,7 +76,7 @@ var _arrayFromMap: {(m: Map<any, any>, getValues: boolean): List<any>} = (functi
 export class MapWrapper {
   static clone<K, V>(m: Map<K, V>): Map<K, V> { return createMapFromMap(m); }
   static createFromStringMap<T>(stringMap: StringMap<string, T>): Map<string, T> {
-    var result = new Map();
+    var result = new Map<string, T>();
     for (var prop in stringMap) {
       result.set(prop, stringMap[prop]);
     }

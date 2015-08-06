@@ -35,8 +35,8 @@ import * as renderApi from 'angular2/src/render/api';
  */
 @Injectable()
 export class CompilerCache {
-  _cache: Map<Type, AppProtoView> = new Map();
-  _hostCache: Map<Type, AppProtoView> = new Map();
+  _cache = new Map<Type, AppProtoView>();
+  _hostCache = new Map<Type, AppProtoView>();
 
   set(component: Type, protoView: AppProtoView): void { this._cache.set(component, protoView); }
 
@@ -85,7 +85,7 @@ export class CompilerCache {
 export class Compiler {
   private _reader: DirectiveResolver;
   private _compilerCache: CompilerCache;
-  private _compiling: Map<Type, Promise<AppProtoView>>;
+  private _compiling = new Map<Type, Promise<AppProtoView>>();
   private _viewResolver: ViewResolver;
   private _componentUrlMapper: ComponentUrlMapper;
   private _urlResolver: UrlResolver;
@@ -102,7 +102,6 @@ export class Compiler {
               appUrl: AppRootUrl) {
     this._reader = reader;
     this._compilerCache = cache;
-    this._compiling = new Map();
     this._viewResolver = viewResolver;
     this._componentUrlMapper = componentUrlMapper;
     this._urlResolver = urlResolver;
@@ -144,7 +143,7 @@ export class Compiler {
               .then((hostRenderPv) => {
                 var protoViews = this._protoViewFactory.createAppProtoViews(
                     componentBinding, hostRenderPv, [componentBinding]);
-                return this._compileNestedProtoViews(protoViews, componentType, new Map());
+                return this._compileNestedProtoViews(protoViews, componentType, new Map<Type, AppProtoView>());
               })
               .then((appProtoView) => {
                 this._compilerCache.setHost(componentType, appProtoView);
@@ -206,7 +205,7 @@ export class Compiler {
   }
 
   private _removeDuplicatedDirectives(directives: List<DirectiveBinding>): List<DirectiveBinding> {
-    var directivesMap: Map<number, DirectiveBinding> = new Map();
+    var directivesMap = new Map<number, DirectiveBinding>();
     directives.forEach((dirBinding) => { directivesMap.set(dirBinding.key.id, dirBinding); });
     return MapWrapper.values(directivesMap);
   }

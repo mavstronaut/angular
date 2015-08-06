@@ -32,7 +32,7 @@ import {normalizeRouteConfig} from './route_config_nomalizer';
  */
 @Injectable()
 export class RouteRegistry {
-  private _rules: Map<any, RouteRecognizer> = new Map();
+  private _rules = new Map<any, RouteRecognizer>();
 
   /**
    * Given a component and a configuration object, add the route to this registry

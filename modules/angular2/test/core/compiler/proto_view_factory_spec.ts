@@ -142,7 +142,7 @@ export function main() {
       it("should not throw when not binding to a name exported by two directives", () => {
         expect(() => {
           createDirectiveVariableBindings(
-              new renderApi.ElementBinder({variableBindings: new Map()}), [
+              new renderApi.ElementBinder({variableBindings: new Map<string, string>()}), [
                 directiveBinding(
                     {metadata: renderApi.DirectiveMetadata.create({exportAs: 'exportName'})}),
                 directiveBinding(

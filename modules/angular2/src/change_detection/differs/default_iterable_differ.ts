@@ -567,7 +567,7 @@ class _DuplicateItemRecordList {
 }
 
 class _DuplicateMap {
-  map: Map<any, _DuplicateItemRecordList> = new Map();
+  map = new Map<any, _DuplicateItemRecordList>();
 
   put(record: CollectionChangeRecord) {
     // todo(vicb) handle corner cases

@@ -121,13 +121,11 @@ export function main() {
 
 class FakeEventManagerPlugin extends EventManagerPlugin {
   _supports: List<string>;
-  _nonBubbleEventHandlers: Map<string, Function>;
-  _bubbleEventHandlers: Map<string, Function>;
+  _nonBubbleEventHandlers = new Map<string, Function>();
+  _bubbleEventHandlers = new Map<string, Function>();
   constructor(supports: List<string>) {
     super();
     this._supports = supports;
-    this._nonBubbleEventHandlers = new Map();
-    this._bubbleEventHandlers = new Map();
   }
 
   supports(eventName: string): boolean { return ListWrapper.contains(this._supports, eventName); }

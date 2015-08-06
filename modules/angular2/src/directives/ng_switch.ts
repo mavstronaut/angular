@@ -47,11 +47,10 @@ export class SwitchView {
 export class NgSwitch {
   _switchValue: any;
   _useDefault: boolean;
-  _valueViews: Map<any, List<SwitchView>>;
+  _valueViews = new Map<any, List<SwitchView>>();
   _activeViews: List<SwitchView>;
 
   constructor() {
-    this._valueViews = new Map();
     this._activeViews = [];
     this._useDefault = false;
   }

@@ -221,7 +221,7 @@ export class DirectiveBinding extends ResolvedBinding {
   get hostActions(): Map<string, string> {
     return isPresent(this.metadata) && isPresent(this.metadata.hostActions) ?
                this.metadata.hostActions :
-               new Map();
+               new Map<string, string>();
   }
 
   get changeDetection() { return this.metadata.changeDetection; }

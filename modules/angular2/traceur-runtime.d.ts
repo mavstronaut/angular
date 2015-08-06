@@ -45,7 +45,6 @@ interface Map<K, V> {
   size: number;
 }
 declare var Map: {
-  new (): Map<any, any>;
   new<K, V>(): Map<K, V>;
   // alexeagle: PATCHED
   new<K, V>(m: Map<K, V>): Map<any, any>;
@@ -62,7 +61,6 @@ interface Set<T> {
   size: number;
 }
 declare var Set: {
-  new (): Set<any>;
   new<T>(): Set<T>;
   // alexeagle PATCHED
   new<T>(s: Set<T>): Set<T>;

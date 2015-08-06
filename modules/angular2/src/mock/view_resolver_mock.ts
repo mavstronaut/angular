@@ -5,10 +5,10 @@ import {View} from 'angular2/src/core/annotations_impl/view';
 import {ViewResolver} from 'angular2/src/core/compiler/view_resolver';
 
 export class MockViewResolver extends ViewResolver {
-  _views: Map<Type, View> = new Map();
-  _inlineTemplates: Map<Type, string> = new Map();
-  _viewCache: Map<Type, View> = new Map();
-  _directiveOverrides: Map<Type, Map<Type, Type>> = new Map();
+  _views = new Map<Type, View>();
+  _inlineTemplates = new Map<Type, string>();
+  _viewCache = new Map<Type, View>();
+  _directiveOverrides = new Map<Type, Map<Type, Type>>();
 
   constructor() { super(); }
 
@@ -47,7 +47,7 @@ export class MockViewResolver extends ViewResolver {
     var overrides = this._directiveOverrides.get(component);
 
     if (isBlank(overrides)) {
-      overrides = new Map();
+      overrides = new Map<Type, Type>();
       this._directiveOverrides.set(component, overrides);
     }
 

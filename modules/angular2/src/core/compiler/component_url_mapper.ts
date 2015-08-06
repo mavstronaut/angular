@@ -21,11 +21,10 @@ export class ComponentUrlMapper {
 }
 
 export class RuntimeComponentUrlMapper extends ComponentUrlMapper {
-  _componentUrls: Map<Type, string>;
+  _componentUrls = new Map<Type, string>();
 
   constructor() {
     super();
-    this._componentUrls = new Map();
   }
 
   setComponentUrl(component: Type, url: string) { this._componentUrls.set(component, url); }
