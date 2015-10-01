@@ -119,7 +119,7 @@ module.exports = function makeBrowserTree(options, destinationPath) {
   // Use TypeScript to transpile the *.ts files to ES5
   var es5Tree = compileWithTypescript(es5ModulesTree, {
     allowNonTsExtensions: false,
-    declaration: false,
+    declaration: true,
     emitDecoratorMetadata: true,
     experimentalDecorators: true,
     mapRoot: '',  // force sourcemaps to use relative path
