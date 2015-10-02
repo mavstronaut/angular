@@ -15,6 +15,7 @@ class TSToDartTranspiler implements DiffingBroccoliPlugin {
   constructor(public inputPath: string, public cachePath: string,
               public options: ts2dart.TranspilerOptions) {
     options.basePath = inputPath;
+    options.enforceUnderscoreConventions = true;
     this.transpiler = new ts2dart.Transpiler(options);
   }
 

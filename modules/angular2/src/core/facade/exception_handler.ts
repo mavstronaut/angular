@@ -78,16 +78,16 @@ export class ExceptionHandler {
     if (this._rethrowException) throw exception;
   }
 
-  _extractMessage(exception: any): string {
+  private _extractMessage(exception: any): string {
     return exception instanceof WrappedException ? exception.wrapperMessage : exception.toString();
   }
 
-  _longStackTrace(stackTrace: any): any {
+  private _longStackTrace(stackTrace: any): any {
     return isListLikeIterable(stackTrace) ? (<any[]>stackTrace).join("\n\n-----async gap-----\n") :
                                             stackTrace.toString();
   }
 
-  _findContext(exception: any): any {
+  private _findContext(exception: any): any {
     try {
       if (!(exception instanceof WrappedException)) return null;
       return isPresent(exception.context) ? exception.context :
@@ -98,7 +98,7 @@ export class ExceptionHandler {
     }
   }
 
-  _findOriginalException(exception: any): any {
+  private _findOriginalException(exception: any): any {
     if (!(exception instanceof WrappedException)) return null;
 
     var e = exception.originalException;
@@ -109,7 +109,7 @@ export class ExceptionHandler {
     return e;
   }
 
-  _findOriginalStack(exception: any): any {
+  private _findOriginalStack(exception: any): any {
     if (!(exception instanceof WrappedException)) return null;
 
     var e = exception;
