@@ -167,16 +167,7 @@ export interface RenderElementRef {
  *
  * The default Renderer implementation is {@link DomRenderer}. Also see {@link WebWorkerRenderer}.
  */
-export class Renderer {
-  /**
-   * @internal
-   *
-   * Private constructor is required so that this class gets converted into an interface in our
-   * public api.
-   *
-   * We implement this a class so that we have a DI token available for binding.
-   */
-  constructor(){};
+export abstract class Renderer {
 
   /**
    * Registers a component template represented as arrays of {@link RenderTemplateCmd}s and styles
@@ -185,13 +176,13 @@ export class Renderer {
    * Once a template is registered it can be referenced via {@link RenderBeginComponentCmd} when
    * {@link #createProtoView creating Render ProtoView}.
    */
-  registerComponentTemplate(templateId: number, commands: RenderTemplateCmd[], styles: string[],
-                            nativeShadow: boolean) {}
+  abstract registerComponentTemplate(templateId: number, commands: RenderTemplateCmd[], styles: string[],
+                            nativeShadow: boolean);
 
   /**
    * Creates a {@link RenderProtoViewRef} from an array of {@link RenderTemplateCmd}`s.
    */
-  createProtoView(cmds: RenderTemplateCmd[]): RenderProtoViewRef { return null; }
+  abstract createProtoView(cmds: RenderTemplateCmd[]): RenderProtoViewRef;
 
   /**
    * Creates a Root Host View based on the provided `hostProtoViewRef`.
@@ -205,10 +196,8 @@ export class Renderer {
    *
    * Returns an instance of {@link RenderViewWithFragments}, representing the Render View.
    */
-  createRootHostView(hostProtoViewRef: RenderProtoViewRef, fragmentCount: number,
-                     hostElementSelector: string): RenderViewWithFragments {
-    return null;
-  }
+  abstract createRootHostView(hostProtoViewRef: RenderProtoViewRef, fragmentCount: number,
+                     hostElementSelector: string): RenderViewWithFragments;
 
   /**
    * Creates a Render View based on the provided `protoViewRef`.
@@ -219,9 +208,7 @@ export class Renderer {
    *
    * Returns an instance of {@link RenderViewWithFragments}, representing the Render View.
    */
-  createView(protoViewRef: RenderProtoViewRef, fragmentCount: number): RenderViewWithFragments {
-    return null;
-  }
+  abstract createView(protoViewRef: RenderProtoViewRef, fragmentCount: number): RenderViewWithFragments;
 
   /**
    * Destroys a Render View specified via `viewRef`.
@@ -233,18 +220,18 @@ export class Renderer {
    * future operations. If the Renderer created any renderer-specific objects for this View, these
    * objects should now be destroyed to prevent memory leaks.
    */
-  destroyView(viewRef: RenderViewRef) {}
+  abstract destroyView(viewRef: RenderViewRef);
 
   /**
    * Attaches the Nodes of a Render Fragment after the last Node of `previousFragmentRef`.
    */
-  attachFragmentAfterFragment(previousFragmentRef: RenderFragmentRef,
-                              fragmentRef: RenderFragmentRef) {}
+  abstract attachFragmentAfterFragment(previousFragmentRef: RenderFragmentRef,
+                              fragmentRef: RenderFragmentRef);
 
   /**
    * Attaches the Nodes of the Render Fragment after an Element.
    */
-  attachFragmentAfterElement(elementRef: RenderElementRef, fragmentRef: RenderFragmentRef) {}
+  abstract attachFragmentAfterElement(elementRef: RenderElementRef, fragmentRef: RenderFragmentRef);
 
   /**
    * Detaches the Nodes of a Render Fragment from their parent.
@@ -252,7 +239,7 @@ export class Renderer {
    * This operations should be called only on a View that has been already
    * {@link #dehydrateView dehydrated}.
    */
-  detachFragment(fragmentRef: RenderFragmentRef) {}
+  abstract detachFragment(fragmentRef: RenderFragmentRef);
 
   /**
    * Notifies a custom Renderer to initialize a Render View.
@@ -260,7 +247,7 @@ export class Renderer {
    * This method is called by Angular after a Render View has been created, or when a previously
    * dehydrated Render View is about to be reused.
    */
-  hydrateView(viewRef: RenderViewRef) {}
+  abstract hydrateView(viewRef: RenderViewRef);
 
   /**
    * Notifies a custom Renderer that a Render View is no longer active.
@@ -268,7 +255,7 @@ export class Renderer {
    * This method is called by Angular before a Render View will be destroyed, or when a hydrated
    * Render View is about to be put into a pool for future reuse.
    */
-  dehydrateView(viewRef: RenderViewRef) {}
+  abstract dehydrateView(viewRef: RenderViewRef);
 
   /**
    * Returns the underlying native element at the specified `location`, or `null` if direct access
@@ -287,38 +274,38 @@ export class Renderer {
    *   </p>
    * </div>
    */
-  getNativeElementSync(location: RenderElementRef): any { return null; }
+  abstract getNativeElementSync(location: RenderElementRef): any;
 
   /**
    * Sets a property on the Element specified via `location`.
    */
-  setElementProperty(location: RenderElementRef, propertyName: string, propertyValue: any) {}
+  abstract setElementProperty(location: RenderElementRef, propertyName: string, propertyValue: any);
 
   /**
    * Sets an attribute on the Element specified via `location`.
    *
    * If `attributeValue` is `null`, the attribute is removed.
    */
-  setElementAttribute(location: RenderElementRef, attributeName: string, attributeValue: string) {}
+  abstract setElementAttribute(location: RenderElementRef, attributeName: string, attributeValue: string);
 
   /**
    * Sets a (CSS) class on the Element specified via `location`.
    *
    * `isAdd` specifies if the class should be added or removed.
    */
-  setElementClass(location: RenderElementRef, className: string, isAdd: boolean) {}
+  abstract setElementClass(location: RenderElementRef, className: string, isAdd: boolean);
 
   /**
    * Sets a (CSS) inline style on the Element specified via `location`.
    *
    * If `styleValue` is `null`, the style is removed.
    */
-  setElementStyle(location: RenderElementRef, styleName: string, styleValue: string) {}
+  abstract setElementStyle(location: RenderElementRef, styleName: string, styleValue: string);
 
   /**
    * Calls a method on the Element specified via `location`.
    */
-  invokeElementMethod(location: RenderElementRef, methodName: string, args: any[]) {}
+  abstract invokeElementMethod(location: RenderElementRef, methodName: string, args: any[]);
 
   /**
    * Sets the value of an interpolated TextNode at the specified index to the `text` value.
@@ -326,7 +313,7 @@ export class Renderer {
    * `textNodeIndex` is the depth-first index of the Node among interpolated Nodes in the Render
    * View.
    */
-  setText(viewRef: RenderViewRef, textNodeIndex: number, text: string) {}
+  abstract setText(viewRef: RenderViewRef, textNodeIndex: number, text: string);
 
   /**
    * Sets a dispatcher to relay all events triggered in the given Render View.
@@ -334,7 +321,7 @@ export class Renderer {
    * Each Render View can have only one Event Dispatcher, if this method is called multiple times,
    * the last provided dispatcher will be used.
    */
-  setEventDispatcher(viewRef: RenderViewRef, dispatcher: RenderEventDispatcher) {}
+  abstract setEventDispatcher(viewRef: RenderViewRef, dispatcher: RenderEventDispatcher);
 }
 
 
