@@ -59,7 +59,9 @@ npm package. See #4706 for more info.
   ```
   <cmp [(prop)]="field"> is desugared to <cmp [prop]="field" (prop-change)="field=$event">
   ```
-
+- TypeScript typings are now included in the distribution. If you have installed external typings
+  (eg. using tsd to fetch files from DefinitelyTyped), you need to remove them. TypeScript will give
+  a `Duplicate identifier` error if the same type definition appears twice.
 
 ### API DEPRECATION
 
