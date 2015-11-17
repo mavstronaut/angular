@@ -1107,6 +1107,17 @@ gulp.task('clean', [
 
 gulp.task('build', ['build.js', 'build.dart']);
 
+gulp.task('build.tgz', ['build.dart'], function() {
+  var tar = require('gulp-tar');
+  var gzip = require('gulp-gzip');
+
+  return gulp.src('dist/*')
+    .pipe(tar('dist.tar'))
+    .pipe(gzip())
+    .pipe(gulp.dest('.'));
+
+});
+
 // ------------
 // transform codegen
 gulp.task('lint_protos.dart', function(done) {
