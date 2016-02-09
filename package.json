@@ -7,7 +7,12 @@
   "contributors": ["Alex Eagle <alexeagle@google.com>","Chirayu Krishnappa <chirayu@google.com>","Jeff Cross <crossj@google.com>","Matias Niemela <matsko@google.com>","Misko Hevery <misko@google.com>","Rado Kirov <radokirov@google.com>","Tobias Bosch <tbosch@google.com>","Victor Savkin <vsavkin@google.com>","Yegor Jbanov <yjbanov@google.com>","Jeremy Elbourn <jelbourn@google.com>"],
   "license": "MIT",
   "repository": {"type":"git","url":"https://github.com/angular/angular.git"},
-  "devDependencies": {},
+  "dependencies": {
+    "typings": "^0.6.6"
+  },
+  "scripts": {
+    "postinstall": "typings install --ambient --name es6-promise github:DefinitelyTyped/DefinitelyTyped/es6-promise/es6-promise.d.ts#830e8ebd9ef137d039d5c7ede24a421f08595f83; typings install --ambient --name es6-collections github:DefinitelyTyped/DefinitelyTyped/es6-collections/es6-collections.d.ts#9f97e2a2bc1f502550c9b4fcaad1c48df5521d37"
+  },
   "peerDependencies": {
     "es6-promise": "^3.0.2",
     "es6-shim": "^0.33.3",
