@@ -21,10 +21,6 @@ tmp
 *.js.deps
 *.js.map
 
-# Or type definitions we mirror from github
-**/typings/**/*.d.ts
-**/typings/tsd.cached.json
-
 # Include when developing application packages.
 pubspec.lock
 .c9
