@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+
+        "moduleResolution": "node",
+        // Enable for debugging
+        //"traceResolution": true
+
+        // The generated files go here by default, unless --genDir is set.
+        "outDir": "../../../dist/tools/compiler_cli/test/built",
+        "experimentalDecorators": true,
+
+        // rootDirs for resolution of relative imports
+        "rootDirs": [
+          "src",    // for authored sources
+          "codegen" // for generated code
+        ],
+        // baseUrl for absolute imports
+        "baseUrl": "../../..",
+        // absolute import paths relative to baseUrl
+        "paths": {
+          "angular2/*": ["dist/js/cjs/angular2/*"],
+          "rxjs/*": ["node_modules/rxjs/*"]
+        }
+    },
+
+    "angularCompilerOptions": {
+      "genDir": "codegen"
+    }
+}
