@@ -1154,7 +1154,8 @@ var bundleConfig = {
   meta: {
     'angular2/src/router/route_definition': {format: 'cjs'},
     'angular2/src/common/directives/observable_list_diff': {format: 'cjs'},
-    'angular2/lifecycle_hooks': {format: 'cjs'}
+    'angular2/lifecycle_hooks': {format: 'cjs'},
+    'rxjs/CoreOperators': {format: 'cjs'}
   }
 };
 
