@@ -209,6 +209,14 @@ describe('Collector', () => {
     const caseFullProp = <ClassMetadata>casesMetadata.metadata['FullProp'];
     expect(caseFullProp.members).toEqual(propertyData);
   });
+
+  it('should record metadata relative to angular2 import location', () => {
+    const metadata = collector.getMetadata(program.getSourceFile('/node_modules/angular2/router.ts'), typeChecker);
+    const args = [{"providers":[{"__symbolic":"reference","name":"a","module":"angular2/src/common"}]}];
+    console.log(JSON.stringify(metadata));
+    const caseCommonA = metadata.metadata['UsesCommonA'];
+    //expect(caseCommonA.decorators[0].arguments).toEqual(args);
+  });
 });
 
 // TODO: Do not use \` in a template literal as it confuses clang-format
@@ -313,7 +321,8 @@ const FILES: Directory = {
           }
       }`,
     'cases-data.ts': `
-      import {Injectable, Input} from 'angular2/core';
+      import {Component, Injectable, Input} from 'angular2/core';
+      import {ROUTER_DIRECTIVES} from 'angular2/router';
 
       @Injectable()
       export class CaseAny {
@@ -346,6 +355,9 @@ const FILES: Directory = {
           this._name = value;
         }
       }
+      
+      @Component({directives: [ROUTER_DIRECTIVES]})
+      export class UsesCommonA {}
      `,
     'cases-no-data.ts': `
       import {HeroService} from './hero.service';
@@ -382,6 +394,11 @@ const FILES: Directory = {
 
   'node_modules': {
     'angular2': {
+      'router.ts': `
+      export {RouterOutlet} from './src/router/directives/router_outlet';
+      import {RouterOutlet} from './src/router/directives/router_outlet';
+      export const ROUTER_DIRECTIVES: any[] = [RouterOutlet];
+      `,
       'core.d.ts': `
           export interface Type extends Function { }
           export interface TypeDecorator {
@@ -430,6 +447,10 @@ const FILES: Directory = {
           export interface OnInit {
               ngOnInit(): any;
           }
+          export interface DirectiveFactory {
+            ({selector: string}): any;
+          }
+          export declare var Directive: DirectiveFactory;
       `,
       'common.d.ts': `
         export declare class NgFor {
@@ -443,7 +464,16 @@ const FILES: Directory = {
         export declare class UpperCasePipe {
             transform(value: string, args?: any[]): string;
         }
-      `
+      `,
+      'src': {
+        'router': {'directives': {
+          'router_outlet.ts': `
+          import {Directive} from 'angular2/core';
+          @Directive({selector: 'router-outlet'})
+          export class RouterOutlet {}
+          `
+        }}
+      }
     }
   }
 };
