@@ -5,6 +5,8 @@
 import * as ts from 'typescript';
 import {basename} from 'path';
 import {StaticReflector, StaticReflectorHost} from "angular2/src/compiler/static_reflector";
+import {MetadataCollector, MetadataCollectorHost} from 'tools/metadata';
+import {NodeReflectorHost} from './reflector_host';
 
 import * as compiler from 'angular2/src/compiler/compiler';
 // TODO(alexeagle): expose these through angular2/src/compiler/compiler as well?
@@ -31,8 +33,10 @@ export interface AngularCompilerOptions {
   // stripDesignTimeDecorators: boolean;
 }
 
+export type CodeGeneratorHost = ts.CompilerHost & MetadataCollectorHost;
+
 export class CodeGenerator {
-  constructor(private ngOptions: AngularCompilerOptions, private program: ts.Program,
+  constructor(private ngOptions: AngularCompilerOptions, public program: ts.Program,
               private host: ts.CompilerHost, private staticReflector: StaticReflector,
               private resolver: RuntimeMetadataResolver,
               private compiler: compiler.OfflineCompiler) {}
@@ -48,8 +52,8 @@ export class CodeGenerator {
     return this.compiler.compileTemplates(metadatas.map(normalize));
   };
 
-  codegen(absoluteSourcePaths: string[]) {
-    const promises = absoluteSourcePaths.map((absSourcePath) => {
+  codegen() {
+    const promises = this.program.getRootFileNames().map((absSourcePath) => {
       let metadata = this.staticReflector.getModuleMetadata(absSourcePath);
 
       if (!metadata) {
@@ -113,9 +117,18 @@ export class CodeGenerator {
   }
 
   // TODO: use DI to create this object graph??
-  static create(ngOptions: AngularCompilerOptions, program: ts.Program, host: ts.CompilerHost,
-                reflectorHost: StaticReflectorHost): CodeGenerator {
-    const xhr: compiler.XHR = {get: (s: string) => Promise.resolve(host.readFile(s))};
+  static create(ngOptions: AngularCompilerOptions, parsed: ts.ParsedCommandLine,
+                compilerHost: CodeGeneratorHost):
+      {errors?: ts.Diagnostic[], generator?: CodeGenerator} {
+    const program = ts.createProgram(parsed.fileNames, parsed.options, compilerHost);
+    const errors = program.getOptionsDiagnostics();
+    if (errors && errors.length) {
+      return {errors};
+    }
+
+    const metadataCollector = new MetadataCollector(compilerHost);
+    const reflectorHost = new NodeReflectorHost(program, metadataCollector, compilerHost);
+    const xhr: compiler.XHR = {get: (s: string) => Promise.resolve(compilerHost.readFile(s))};
     const urlResolver: compiler.UrlResolver = compiler.createOfflineCompileUrlResolver();
     const staticReflector = new StaticReflector(reflectorHost);
     const htmlParser = new HtmlParser();
@@ -129,6 +142,9 @@ export class CodeGenerator {
     const resolver = new RuntimeMetadataResolver(
         new compiler.DirectiveResolver(staticReflector), new compiler.PipeResolver(staticReflector),
         new compiler.ViewResolver(staticReflector), null, null, staticReflector);
-    return new CodeGenerator(ngOptions, program, host, staticReflector, resolver, offlineCompiler);
+    return {
+      generator: new CodeGenerator(ngOptions, program, compilerHost, staticReflector, resolver,
+                                   offlineCompiler)
+    };
   }
 }

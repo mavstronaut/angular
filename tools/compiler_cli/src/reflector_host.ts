@@ -8,7 +8,7 @@ const DTS = /\.d\.ts$/;
 
 export class NodeReflectorHost implements StaticReflectorHost {
   constructor(private program: ts.Program, private metadataCollector: MetadataCollector,
-              private basePath: string, private compilerHost: ts.CompilerHost) {}
+              private compilerHost: ts.CompilerHost) {}
 
   getMetadataFor(moduleId: string): ModuleMetadata {
     let filePath: string;

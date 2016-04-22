@@ -12,13 +12,11 @@ import {AngularCompilerOptions} from './codegen';
 export interface CompilerInterface {
   readConfiguration(
       project: string,
-      basePath: string): {options: ts.CompilerOptions, ngOptions: AngularCompilerOptions};
-  createProgram(compilerHost: ts.CompilerHost): ts.Program;
-  typeCheckAndEmit(compilerHost: ts.CompilerHost, writeFile: ts.WriteFileCallback,
-                   oldProgram?: ts.Program): number;
+      basePath: string): {parsed: ts.ParsedCommandLine, ngOptions: AngularCompilerOptions};
+  typeCheckAndEmit(compilerHost: ts.CompilerHost, oldProgram?: ts.Program): number;
 }
 
-const DEBUG = true;
+const DEBUG = false;
 const SOURCE_EXTENSION = /\.[jt]s$/;
 
 function debug(msg: string, ...o: any[]) {
@@ -39,15 +37,16 @@ export function formatDiagnostics(diags: ts.Diagnostic[]): string {
       .join('\n');
 }
 
-function check(diags: ts.Diagnostic[]) {
+export function check(diags: ts.Diagnostic[]) {
   if (diags && diags.length && diags[0]) {
     throw new Error(formatDiagnostics(diags));
   }
 }
+
 export class TSC implements CompilerInterface {
-  private ngOptions: AngularCompilerOptions;
+  public ngOptions: AngularCompilerOptions;
+  public parsed: ts.ParsedCommandLine;
   private basePath: string;
-  private parsed: ts.ParsedCommandLine;
 
   readConfiguration(project: string, basePath: string) {
     this.basePath = basePath;
@@ -77,17 +76,10 @@ export class TSC implements CompilerInterface {
       throw new Error("Must set either compilerOptions.outDir or angularCompilerOptions.genDir");
     }
     this.ngOptions.genDir = genDir;
-    return {options: this.parsed.options, ngOptions: this.ngOptions};
+    return {parsed: this.parsed, ngOptions: this.ngOptions};
   }
 
-  createProgram(compilerHost: ts.CompilerHost) {
-    const program = ts.createProgram(this.parsed.fileNames, this.parsed.options, compilerHost);
-    check(program.getOptionsDiagnostics());
-    return program;
-  }
-
-  typeCheckAndEmit(compilerHost: ts.CompilerHost, writeFile: ts.WriteFileCallback,
-                   oldProgram?: ts.Program): number {
+  typeCheckAndEmit(compilerHost: ts.CompilerHost, oldProgram?: ts.Program): number {
     let diagnostics: ts.Diagnostic[] = [];
 
     const program =
@@ -105,7 +97,7 @@ export class TSC implements CompilerInterface {
 
     let failed = false;
     for (let sourceFile of program.getSourceFiles()) {
-      let {diagnostics, emitSkipped} = program.emit(sourceFile, writeFile);
+      let {diagnostics, emitSkipped} = program.emit(sourceFile, compilerHost.writeFile);
       diagnostics.push(...diagnostics);
       failed = failed || emitSkipped;
     }

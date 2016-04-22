@@ -7,11 +7,9 @@ import 'reflect-metadata';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
-import {tsc} from './tsc';
+import {tsc, check} from './tsc';
 import {createCompilerHost} from './compiler_host';
-import {MetadataCollector} from 'tools/metadata';
 import {CodeGenerator} from './codegen';
-import {NodeReflectorHost} from './reflector_host';
 
 const DEBUG = false;
 
@@ -20,39 +18,23 @@ function debug(msg: string, ...o: any[]) {
 }
 
 export function main(project: string, basePath?: string): Promise<number> {
+  // file names in tsconfig are resolved relative to this absolute path
   basePath = path.join(process.cwd(), basePath || project);
 
-  debug("Reading configuration...");
-  const {options, ngOptions} = tsc.readConfiguration(project, basePath);
+  // read the configuration options from wherever you store them
+  const {parsed, ngOptions} = tsc.readConfiguration(project, basePath);
 
-  debug("Initializing program...");
-  const compilerHost = createCompilerHost(options);
-  const program = tsc.createProgram(compilerHost);
+  // use our compiler host, which wraps the built-in one from TypeScript
+  const compilerHost =
+      createCompilerHost(ts.createCompilerHost(parsed.options, true), parsed.options);
+  const {errors, generator} = CodeGenerator.create(ngOptions, parsed, compilerHost);
+  check(errors);
 
-  debug(`Generating Angular 2 code to ${ngOptions.genDir}...`);
-  const metadataCollector = new MetadataCollector(compilerHost);
-  const reflectorHost = new NodeReflectorHost(program, metadataCollector, basePath, compilerHost);
-  const generator = CodeGenerator.create(ngOptions, program, compilerHost, reflectorHost);
-
-  return generator.codegen(program.getRootFileNames())
-      .then(() => {
-        const writeFile: ts.WriteFileCallback =
-            (absoluteFilePath: string, content: string, writeByteOrderMark: boolean,
-             onError?: (message: string) => void, sf?: ts.SourceFile[]) => {
-              if (sf.length > 1) {
-                throw new Error("expected to emit one file at a time.");
-              }
-              const sourceFile = sf[0];
-              compilerHost.writeFile(absoluteFilePath, content, false);
-              // const writePath =
-              //  tsc.writeEmit(sourceFile.fileName, absoluteFilePath, content);
-              reflectorHost.writeMetadata(absoluteFilePath, sourceFile);
-            };
-        return Promise.resolve(tsc.typeCheckAndEmit(compilerHost, writeFile, program));
-      })
+  return generator.codegen()
+      .then(() => { return tsc.typeCheckAndEmit(compilerHost, generator.program); })
       .catch(rejected => {
         console.error('Compile failed\n', rejected.message);
-        throw new Error();
+        throw new Error(rejected);
       });
 }
 
