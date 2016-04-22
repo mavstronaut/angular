@@ -30,8 +30,8 @@ module.exports = function(gulp, plugins, config) {
       var linkDir = path.join(nodeModulesDir, relativeFolder);
       symlink(relativeFolder, linkDir);
     });
-    // Also symlink the tools, so tests can require metadata, compiler_cli, etc.
-    symlink('../../tools', path.join(nodeModulesDir, 'tools'), 'tools');
+    // Also symlink tools we release independently to NPM, so tests can require metadata, etc.
+    symlink('../../tools/metadata', path.join(nodeModulesDir, 'ts-metadata-collector'));
   };
 };
 

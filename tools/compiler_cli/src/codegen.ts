@@ -3,9 +3,9 @@
  * Intended to be used in a build step.
  */
 import * as ts from 'typescript';
+import {MetadataCollector, MetadataCollectorHost} from 'ts-metadata-collector';
 import {basename} from 'path';
 import {StaticReflector, StaticReflectorHost} from "angular2/src/compiler/static_reflector";
-import {MetadataCollector, MetadataCollectorHost} from 'tools/metadata';
 import {NodeReflectorHost} from './reflector_host';
 
 import * as compiler from 'angular2/src/compiler/compiler';

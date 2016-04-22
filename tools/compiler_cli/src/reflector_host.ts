@@ -1,6 +1,6 @@
 import {StaticReflectorHost, StaticType} from 'angular2/src/compiler/static_reflector';
 import * as ts from 'typescript';
-import {MetadataCollector, ModuleMetadata} from 'tools/metadata';
+import {MetadataCollector, ModuleMetadata} from 'ts-metadata-collector';
 import * as fs from 'fs';
 
 const EXTS = ['', '.ts', '.d.ts', '.js', '.jsx', '.tsx'];

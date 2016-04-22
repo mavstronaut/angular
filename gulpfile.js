@@ -1045,7 +1045,7 @@ gulp.task('test.typings', ['build.js.cjs'],
           function(done) { runSequence('!test.typings', sequenceComplete(done)); });
 
 gulp.task('!build.compiler_cli', ['build.js.cjs'],
-          function(done) { runTsc('tools/compiler_cli', done); });
+          function(done) { runTsc('tools/compiler_cli/src', done); });
 
 gulp.task('!test.compiler_cli.codegen', function(done) {
   try {

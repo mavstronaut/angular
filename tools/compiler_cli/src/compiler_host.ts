@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import * as path from 'path';
-import {MetadataCollectorHost} from 'tools/metadata';
+import {MetadataCollectorHost} from 'ts-metadata-collector';
 
 const DEBUG = false;
 function debug(msg: string, ...o: any[]) {
