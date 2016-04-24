@@ -8,6 +8,7 @@
     "compilerOptions": {
         "target": "es6",
         "experimentalDecorators": true,
+        "noImplicitAny": true,
 
         // The generated files go here by default
         // if angularCompilerOptions.genDir is not set.
