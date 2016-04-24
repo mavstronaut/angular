@@ -107,7 +107,7 @@ export class CodeGenerator {
               const emitPath = jsEmitPath.replace(this.program.getCompilerOptions().outDir,
                                                   this.ngOptions.genDir)
                                    .replace(SOURCE_EXTENSION, '.ngfactory.ts');
-              this.host.writeFile(emitPath, generated.source, false);
+              this.host.writeFile(emitPath, PREAMBLE + generated.source, false);
             });
 
           })

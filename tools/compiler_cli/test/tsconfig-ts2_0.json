@@ -1,0 +1,41 @@
+{
+    "angularCompilerOptions": {
+      "genDir": "codegen"
+    },
+
+    "compilerOptions": {
+        "target": "es6",
+        "experimentalDecorators": true,
+
+        // The generated files go here by default
+        // if angularCompilerOptions.genDir is not set.
+        "outDir": "../../../dist/tools/compiler_cli/test/built",
+
+        // rootDir affects the output directory layout.
+        // Without this option, an empty codegen directory causes
+        // the rootDir to be implied as "src".
+        // All inputs (rootDirs) must be under this path.
+        "rootDir": ".",
+
+        /**
+         * Options which affect module resolution of import locations
+         */
+
+        "moduleResolution": "node",
+        // rootDirs for resolution of relative imports
+        "rootDirs": [
+          "src",    // for authored sources
+          "codegen" // for generated code
+        ],
+        // baseUrl for absolute imports
+        "baseUrl": "../../..",
+        // absolute import paths relative to baseUrl
+        "paths": {
+          "angular2/*": ["dist/js/cjs/angular2/*"],
+          "rxjs/*": ["node_modules/rxjs/*"],
+          "ts-metadata-collector": ["dist/tools/metadata"]
+        }
+        // Enable for debugging
+        //"traceResolution": true
+    }
+}

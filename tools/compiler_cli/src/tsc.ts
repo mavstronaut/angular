@@ -98,7 +98,6 @@ export class TSC implements CompilerInterface {
     let failed = false;
     for (let sourceFile of program.getRootFileNames()) {
       let {diagnostics, emitSkipped} = program.emit(program.getSourceFile(sourceFile), (jsEmitPath: string, content: string) => {
-console.log(`emit ${sourceFile} to ${jsEmitPath}`);
               compilerHost.writeFile(jsEmitPath, content, false);
       });
       diagnostics.push(...diagnostics);
