@@ -3,6 +3,7 @@
  * Intended to be used in a build step.
  */
 import * as ts from 'typescript';
+import * as path from 'path';
 import {MetadataCollector, MetadataCollectorHost} from 'ts-metadata-collector';
 import {basename} from 'path';
 import {StaticReflector, StaticReflectorHost} from "angular2/src/compiler/static_reflector";

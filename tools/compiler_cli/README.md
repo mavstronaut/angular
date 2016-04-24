@@ -51,7 +51,7 @@ Run the compiler from source:
 # Build angular2
 gulp build.js.cjs
 # Build the compiler
-./node_modules/.bin/tsc -p tools/compiler_cli
+./node_modules/.bin/tsc -p tools/compiler_cli/src
 # Run it on the test project
 node ./dist/js/cjs/compiler_cli -p tools/compiler_cli/test
 ```
