@@ -80,32 +80,25 @@ export class TSC implements CompilerInterface {
   }
 
   typeCheckAndEmit(compilerHost: ts.CompilerHost, oldProgram?: ts.Program): number {
-    let diagnostics: ts.Diagnostic[] = [];
-
     const program =
         ts.createProgram(this.parsed.fileNames, this.parsed.options, compilerHost, oldProgram);
     debug("Checking global diagnostics...");
     check(program.getGlobalDiagnostics());
 
     debug("Type checking...");
-    for (let sf of program.getSourceFiles()) {
-      diagnostics.push(...ts.getPreEmitDiagnostics(program, sf));
+    {
+      let diagnostics: ts.Diagnostic[] = [];
+      for (let sf of program.getSourceFiles()) {
+        diagnostics.push(...ts.getPreEmitDiagnostics(program, sf));
+      }
+      check(diagnostics);
     }
-    check(diagnostics);
 
     debug("Emitting outputs...");
 
-    let failed = false;
-    for (let sourceFile of program.getRootFileNames()) {
-      let {diagnostics, emitSkipped} =
-          program.emit(program.getSourceFile(sourceFile), (jsEmitPath: string, content: string) => {
-            compilerHost.writeFile(jsEmitPath, content, false);
-          });
-      diagnostics.push(...diagnostics);
-      failed = failed || emitSkipped;
-    }
+    const {diagnostics, emitSkipped} = program.emit();
     check(diagnostics);
-    return failed ? 1 : 0;
+    return emitSkipped ? 1 : 0;
   }
 }
 export var tsc: CompilerInterface = new TSC();
