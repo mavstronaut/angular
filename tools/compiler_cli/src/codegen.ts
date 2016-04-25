@@ -28,7 +28,8 @@ export type CodeGeneratorHost = ts.CompilerHost & MetadataCollectorHost;
 export class CodeGenerator {
   constructor(private ngOptions: AngularCompilerOptions, private basePath: string,
               public program: ts.Program, public host: CodeGeneratorHost,
-              private staticReflector: compiler.StaticReflector, private resolver: compiler.RuntimeMetadataResolver,
+              private staticReflector: compiler.StaticReflector,
+              private resolver: compiler.RuntimeMetadataResolver,
               private compiler: compiler.OfflineCompiler) {}
 
   private generateSource(metadatas: compiler.CompileDirectiveMetadata[]) {
@@ -42,56 +43,57 @@ export class CodeGenerator {
     return this.compiler.compileTemplates(metadatas.map(normalize));
   }
 
-  private readComponents(absSourcePath:string) {
-      const result: Promise<compiler.CompileDirectiveMetadata>[] = [];
-      let metadata = this.staticReflector.getModuleMetadata(absSourcePath);
+  private readComponents(absSourcePath: string) {
+    const result: Promise<compiler.CompileDirectiveMetadata>[] = [];
+    let metadata = this.staticReflector.getModuleMetadata(absSourcePath);
 
-      if (!metadata) {
-        console.log(`WARNING: no metadata found for ${absSourcePath}`);
-        return result;
-      }
-
-      const symbols = Object.keys(metadata['metadata']);
-      if (!symbols || !symbols.length) {
-        return result;
-      }
-      for (const symbol of symbols) {
-        const staticType = this.staticReflector.getStaticType(absSourcePath, symbol);
-
-        let directive: compiler.CompileDirectiveMetadata;
-        directive = this.resolver.getDirectiveMetadata(<any>staticType);
-
-        if (!directive.isComponent) {
-          continue;
-        }
-        result.push(this.compiler.normalizeDirectiveMetadata(directive).then((m) => {
-          m.type.moduleUrl =
-              'asset:tmp/lib/' + path.basename(absSourcePath).replace(SOURCE_EXTENSION, '');
-          return m;
-        }));
-      }
+    if (!metadata) {
+      console.log(`WARNING: no metadata found for ${absSourcePath}`);
       return result;
+    }
+
+    const symbols = Object.keys(metadata['metadata']);
+    if (!symbols || !symbols.length) {
+      return result;
+    }
+    for (const symbol of symbols) {
+      const staticType = this.staticReflector.getStaticType(absSourcePath, symbol);
+
+      let directive: compiler.CompileDirectiveMetadata;
+      directive = this.resolver.getDirectiveMetadata(<any>staticType);
+
+      if (!directive.isComponent) {
+        continue;
+      }
+      result.push(this.compiler.normalizeDirectiveMetadata(directive).then((m) => {
+        m.type.moduleUrl =
+            'asset:tmp/lib/' + path.basename(absSourcePath).replace(SOURCE_EXTENSION, '');
+        return m;
+      }));
+    }
+    return result;
   }
 
   codegen() {
-    const generateOneFile = (absSourcePath: string) => Promise.all(this.readComponents(absSourcePath))
-      .then((metadatas: compiler.CompileDirectiveMetadata[]) => {
-        if (!metadatas || !metadatas.length) {
-          return;
-        }
-        const generated = this.generateSource(metadatas);
-        const sourceFile = this.program.getSourceFile(absSourcePath);
+    const generateOneFile = (absSourcePath: string) =>
+        Promise.all(this.readComponents(absSourcePath))
+            .then((metadatas: compiler.CompileDirectiveMetadata[]) => {
+              if (!metadatas || !metadatas.length) {
+                return;
+              }
+              const generated = this.generateSource(metadatas);
+              const sourceFile = this.program.getSourceFile(absSourcePath);
 
-        // Write codegen in a directory structure matching the sources.
-        // TODO(alexeagle): maybe use generated.moduleUrl instead of hardcoded ".ngfactory.ts"
-        // TODO(alexeagle): relativize paths by the rootDirs option
-        const emitPath =
-          path.join(this.ngOptions.genDir, path.relative(this.basePath, absSourcePath))
-            .replace(SOURCE_EXTENSION, '.ngfactory.ts');
-        this.host.writeFile(emitPath, PREAMBLE + generated.source, false, () => {},
-          [sourceFile]);
-      })
-      .catch((e) => { console.error('ERROR', e, e.stack); });
+              // Write codegen in a directory structure matching the sources.
+              // TODO(alexeagle): maybe use generated.moduleUrl instead of hardcoded ".ngfactory.ts"
+              // TODO(alexeagle): relativize paths by the rootDirs option
+              const emitPath =
+                  path.join(this.ngOptions.genDir, path.relative(this.basePath, absSourcePath))
+                      .replace(SOURCE_EXTENSION, '.ngfactory.ts');
+              this.host.writeFile(emitPath, PREAMBLE + generated.source, false, () => {},
+                                  [sourceFile]);
+            })
+            .catch((e) => { console.error('ERROR', e, e.stack); });
 
     return Promise.all(this.program.getRootFileNames().map(generateOneFile));
   }
@@ -114,11 +116,12 @@ export class CodeGenerator {
     const htmlParser = new compiler.HtmlParser();
     const normalizer = new compiler.DirectiveNormalizer(xhr, urlResolver, htmlParser);
     const parser = new compiler.Parser(new compiler.Lexer());
-    const tmplParser = new compiler.TemplateParser(parser, new compiler.DomElementSchemaRegistry(), htmlParser,
-                                          [new RouterLinkTransform(parser)]);
+    const tmplParser = new compiler.TemplateParser(parser, new compiler.DomElementSchemaRegistry(),
+                                                   htmlParser, [new RouterLinkTransform(parser)]);
     const offlineCompiler = new compiler.OfflineCompiler(
         normalizer, tmplParser, new compiler.StyleCompiler(urlResolver),
-        new compiler.ViewCompiler(new compiler.CompilerConfig(true, true, true)), new compiler.TypeScriptEmitter());
+        new compiler.ViewCompiler(new compiler.CompilerConfig(true, true, true)),
+        new compiler.TypeScriptEmitter());
     const resolver = new compiler.RuntimeMetadataResolver(
         new compiler.DirectiveResolver(staticReflector), new compiler.PipeResolver(staticReflector),
         new compiler.ViewResolver(staticReflector), null, null, staticReflector);

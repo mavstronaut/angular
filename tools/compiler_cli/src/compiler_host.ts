@@ -26,9 +26,8 @@ abstract class DelegatingHost implements ts.CompilerHost {
   getCanonicalFileName = (fileName: string) => this.delegate.getCanonicalFileName(fileName);
   useCaseSensitiveFileNames = () => this.delegate.useCaseSensitiveFileNames();
   getNewLine = () => this.delegate.getNewLine();
-  resolveModuleNames(moduleNames: string[], containingFile: string) {
-    return this.delegate.resolveModuleNames(moduleNames, containingFile);
-  }
+  resolveModuleNames = (moduleNames: string[], containingFile: string) =>
+      this.delegate.resolveModuleNames(moduleNames, containingFile);
   fileExists = (fileName: string) => this.delegate.fileExists(fileName);
   readFile = (fileName: string) => this.delegate.readFile(fileName);
   trace = (s: string) => this.delegate.trace(s);
@@ -45,7 +44,7 @@ class ReverseModuleResolutionHost extends DelegatingHost implements MetadataColl
   // Collect a reverse mapping from each resolved absolute module path
   // to the requested module name.
   // Allows us to reverse the moduleResolution.
-  resolveModuleNames(moduleNames: string[], containingFile: string) {
+  resolveModuleNames = (moduleNames: string[], containingFile: string) => {
     const result: ts.ResolvedModule[] = [];
     moduleNames.forEach(moduleName => {
       const resolved =

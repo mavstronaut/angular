@@ -1061,9 +1061,8 @@ gulp.task('!test.compiler_cli.codegen', function(done) {
 // End-to-end test for compiler CLI.
 // Calls the compiler using its command-line interface, then compiles the app with the codegen.
 // TODO(alexeagle): wire up the playground tests with offline compilation, similar to dart.
-gulp.task('test.compiler_cli', ['!build.compiler_cli'], function(done) {
-  runSequence('!test.compiler_cli.codegen', sequenceComplete(done));
-});
+gulp.task('test.compiler_cli', ['!build.compiler_cli'],
+          function(done) { runSequence('!test.compiler_cli.codegen', sequenceComplete(done)); });
 
 // -----------------
 // orchestrated targets
