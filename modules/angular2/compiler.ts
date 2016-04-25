@@ -34,4 +34,15 @@ export {
   CompilePipeMetadata
 } from 'angular2/src/compiler/compiler';
 
+export {RuntimeMetadataResolver} from 'angular2/src/compiler/runtime_metadata';
+export {HtmlParser} from 'angular2/src/compiler/html_parser';
+export {DirectiveNormalizer} from "angular2/src/compiler/directive_normalizer";
+export {Lexer} from "angular2/src/compiler/expression_parser/lexer";
+export {Parser} from "angular2/src/compiler/expression_parser/parser";
+export {TemplateParser} from 'angular2/src/compiler/template_parser';
+export {DomElementSchemaRegistry} from 'angular2/src/compiler/schema/dom_element_schema_registry';
+export {StyleCompiler} from 'angular2/src/compiler/style_compiler';
+export {ViewCompiler} from "angular2/src/compiler/view_compiler/view_compiler";
+export {TypeScriptEmitter} from "angular2/src/compiler/output/ts_emitter";
+
 export * from 'angular2/src/compiler/template_ast';

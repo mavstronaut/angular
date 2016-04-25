@@ -1057,16 +1057,12 @@ gulp.task('!test.compiler_cli.codegen', function(done) {
     done(err);
   }
 });
-gulp.task('!test.compiler_cli.jasmine', function(done) {
-  // TODO(alexeagle): add some jasmine tests that the app still works after compilation
-  // runJasmineTests([CONFIG.dest.js.cjs + '/tools/compiler_cli/test/*_spec.js'], done);
-});
 
 // End-to-end test for compiler CLI.
-// Calls the compiler using its command-line interface, then compiles the app with the codegen
-// and verifies with simple jasmine test running in nodejs.
+// Calls the compiler using its command-line interface, then compiles the app with the codegen.
+// TODO(alexeagle): wire up the playground tests with offline compilation, similar to dart.
 gulp.task('test.compiler_cli', ['!build.compiler_cli'], function(done) {
-  runSequence('!test.compiler_cli.codegen', '!test.compiler_cli.jasmine', sequenceComplete(done));
+  runSequence('!test.compiler_cli.codegen', sequenceComplete(done));
 });
 
 // -----------------

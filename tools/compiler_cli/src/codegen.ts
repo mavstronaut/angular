@@ -10,18 +10,8 @@ import {StaticReflector, StaticReflectorHost} from "angular2/src/compiler/static
 import {NodeReflectorHost} from './reflector_host';
 import {wrapCompilerHost} from './compiler_host';
 
-import * as compiler from 'angular2/src/compiler/compiler';
-// TODO(alexeagle): expose these through angular2/src/compiler/compiler as well?
-import {RuntimeMetadataResolver} from 'angular2/src/compiler/runtime_metadata';
-import {HtmlParser} from 'angular2/src/compiler/html_parser';
-import {DirectiveNormalizer} from "angular2/src/compiler/directive_normalizer";
-import {Lexer} from "angular2/src/compiler/expression_parser/lexer";
-import {Parser} from "angular2/src/compiler/expression_parser/parser";
-import {TemplateParser} from 'angular2/src/compiler/template_parser';
-import {DomElementSchemaRegistry} from 'angular2/src/compiler/schema/dom_element_schema_registry';
-import {StyleCompiler} from 'angular2/src/compiler/style_compiler';
-import {ViewCompiler} from "angular2/src/compiler/view_compiler/view_compiler";
-import {TypeScriptEmitter} from "angular2/src/compiler/output/ts_emitter";
+import * as compiler from 'angular2/compiler';
+
 import {RouterLinkTransform} from "angular2/src/router/directives/router_link_transform";
 
 const SOURCE_EXTENSION = /\.[jt]s$/;
@@ -34,9 +24,6 @@ const PREAMBLE = `/**
 export interface AngularCompilerOptions {
   // Absolute path to a directory where generated file structure is written
   genDir: string;
-
-  // TODO(alexeagle): add more options, eg.
-  // stripDesignTimeDecorators: boolean;
 }
 
 export type CodeGeneratorHost = ts.CompilerHost & MetadataCollectorHost;
@@ -44,7 +31,7 @@ export type CodeGeneratorHost = ts.CompilerHost & MetadataCollectorHost;
 export class CodeGenerator {
   constructor(private ngOptions: AngularCompilerOptions, private basePath: string,
               public program: ts.Program, public host: CodeGeneratorHost,
-              private staticReflector: StaticReflector, private resolver: RuntimeMetadataResolver,
+              private staticReflector: StaticReflector, private resolver: compiler.RuntimeMetadataResolver,
               private compiler: compiler.OfflineCompiler) {}
 
   private generateSource(metadatas: compiler.CompileDirectiveMetadata[]) {
@@ -137,15 +124,15 @@ export class CodeGenerator {
     const xhr: compiler.XHR = {get: (s: string) => Promise.resolve(compilerHost.readFile(s))};
     const urlResolver: compiler.UrlResolver = compiler.createOfflineCompileUrlResolver();
     const staticReflector = new StaticReflector(reflectorHost);
-    const htmlParser = new HtmlParser();
-    const normalizer = new DirectiveNormalizer(xhr, urlResolver, htmlParser);
-    const parser = new Parser(new Lexer());
-    const tmplParser = new TemplateParser(parser, new DomElementSchemaRegistry(), htmlParser,
+    const htmlParser = new compiler.HtmlParser();
+    const normalizer = new compiler.DirectiveNormalizer(xhr, urlResolver, htmlParser);
+    const parser = new compiler.Parser(new compiler.Lexer());
+    const tmplParser = new compiler.TemplateParser(parser, new compiler.DomElementSchemaRegistry(), htmlParser,
                                           [new RouterLinkTransform(parser)]);
     const offlineCompiler = new compiler.OfflineCompiler(
-        normalizer, tmplParser, new StyleCompiler(urlResolver),
-        new ViewCompiler(new compiler.CompilerConfig(true, true, true)), new TypeScriptEmitter());
-    const resolver = new RuntimeMetadataResolver(
+        normalizer, tmplParser, new compiler.StyleCompiler(urlResolver),
+        new compiler.ViewCompiler(new compiler.CompilerConfig(true, true, true)), new compiler.TypeScriptEmitter());
+    const resolver = new compiler.RuntimeMetadataResolver(
         new compiler.DirectiveResolver(staticReflector), new compiler.PipeResolver(staticReflector),
         new compiler.ViewResolver(staticReflector), null, null, staticReflector);
     return {

@@ -29,13 +29,6 @@ abstract class DelegatingHost implements ts.CompilerHost {
   resolveModuleNames(moduleNames: string[], containingFile: string) {
     return this.delegate.resolveModuleNames(moduleNames, containingFile);
   }
-
-  // TODO(alexeagle): need to express the optionality of this member.
-  // if the delegate has it undefined, ours should be too.
-  // resolveTypeReferenceDirectives =
-  //   (typeReferenceDirectiveNames: string[], containingFile: string) =>
-  //      this.delegate.resolveTypeReferenceDirectives(typeReferenceDirectiveNames, containingFile);
-
   fileExists = (fileName: string) => this.delegate.fileExists(fileName);
   readFile = (fileName: string) => this.delegate.readFile(fileName);
   trace = (s: string) => this.delegate.trace(s);

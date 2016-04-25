@@ -3,8 +3,8 @@
 Angular applications are built with templates, which may be `.html` or `.css` files,
 or may be inline `template` attributes on Decorators like `@Component`.
 
-These templates are always compiled into executable JS when the application runs.
-This compilation can occur on the client, but it results in slower load time, and also
+These templates are compiled into executable JS at application runtime (except in `interpretation` mode).
+This compilation can occur on the client, but it results in slower bootstrap time, and also
 requires that the compiler be included in the code downloaded to the client.
 
 You can produce smaller, faster applications by running Angular's compiler as a build step,
@@ -30,7 +30,7 @@ In TypeScript 1.8, the generated sources will have to be written alongside your 
 so set `genDir` to the same location as your files (typicially the same as `rootDir`).
 Add `**/*.ngfactory.ts` to your `.gitignore` or other mechanism for your version control system.
 
-TypeScript 1.9 and above, you can add a generated folder into your application,
+In TypeScript 1.9 and above, you can add a generated folder into your application,
 such as `codegen`. Using the `rootDirs` option, you can allow relative imports like
 `import {} from './foo.ngfactory'` even though the `src` and `codegen` trees are distinct.
 Add `**/codegen` to your `.gitignore` or similar.
