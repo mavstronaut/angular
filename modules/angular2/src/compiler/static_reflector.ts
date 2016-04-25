@@ -135,11 +135,10 @@ export class StaticReflector implements ReflectorReader {
     return parameters;
   }
 
-  private conversionMap = new Map<StaticType, (moduleContext: string, expression: any) => any>();
+  private conversionMap = new Map<string, (moduleContext: string, expression: any) => any>();
   private initializeConversionMap(): any {
-    let core_metadata = 'angular2/src/core/metadata';
     let conversionMap = this.conversionMap;
-    conversionMap.set(this.getStaticType(core_metadata, 'Directive'),
+    conversionMap.set('Directive',
                       (moduleContext, expression) => {
                         let p0 = this.getDecoratorParameter(moduleContext, expression, 0);
                         if (!isPresent(p0)) {
@@ -157,7 +156,7 @@ export class StaticReflector implements ReflectorReader {
                           queries: p0['queries'],
                         });
                       });
-    conversionMap.set(this.getStaticType(core_metadata, 'Component'),
+    conversionMap.set('Component',
                       (moduleContext, expression) => {
                         let p0 = this.getDecoratorParameter(moduleContext, expression, 0);
                         if (!isPresent(p0)) {
@@ -187,13 +186,13 @@ export class StaticReflector implements ReflectorReader {
                           encapsulation: p0['encapsulation']
                         });
                       });
-    conversionMap.set(this.getStaticType(core_metadata, 'Input'),
+    conversionMap.set('Input',
                       (moduleContext, expression) => new InputMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set(this.getStaticType(core_metadata, 'Output'),
+    conversionMap.set('Output',
                       (moduleContext, expression) => new OutputMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set(this.getStaticType(core_metadata, 'View'), (moduleContext, expression) => {
+    conversionMap.set('View', (moduleContext, expression) => {
       let p0 = this.getDecoratorParameter(moduleContext, expression, 0);
       if (!isPresent(p0)) {
         p0 = {};
@@ -207,10 +206,10 @@ export class StaticReflector implements ReflectorReader {
         styles: p0['styles'],
       });
     });
-    conversionMap.set(this.getStaticType(core_metadata, 'Attribute'),
+    conversionMap.set('Attribute',
                       (moduleContext, expression) => new AttributeMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set(this.getStaticType(core_metadata, 'Query'), (moduleContext, expression) => {
+    conversionMap.set('Query', (moduleContext, expression) => {
       let p0 = this.getDecoratorParameter(moduleContext, expression, 0);
       let p1 = this.getDecoratorParameter(moduleContext, expression, 1);
       if (!isPresent(p1)) {
@@ -218,19 +217,19 @@ export class StaticReflector implements ReflectorReader {
       }
       return new QueryMetadata(p0, {descendants: p1.descendants, first: p1.first});
     });
-    conversionMap.set(this.getStaticType(core_metadata, 'ContentChildren'),
+    conversionMap.set('ContentChildren',
                       (moduleContext, expression) => new ContentChildrenMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set(this.getStaticType(core_metadata, 'ContentChild'),
+    conversionMap.set('ContentChild',
                       (moduleContext, expression) => new ContentChildMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set(this.getStaticType(core_metadata, 'ViewChildren'),
+    conversionMap.set('ViewChildren',
                       (moduleContext, expression) => new ViewChildrenMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set(this.getStaticType(core_metadata, 'ViewChild'),
+    conversionMap.set('ViewChild',
                       (moduleContext, expression) => new ViewChildMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set(this.getStaticType(core_metadata, 'ViewQuery'),
+    conversionMap.set('ViewQuery',
                       (moduleContext, expression) => {
                         let p0 = this.getDecoratorParameter(moduleContext, expression, 0);
                         let p1 = this.getDecoratorParameter(moduleContext, expression, 1);
@@ -242,7 +241,7 @@ export class StaticReflector implements ReflectorReader {
                           first: p1['first'],
                         });
                       });
-    conversionMap.set(this.getStaticType(core_metadata, 'Pipe'), (moduleContext, expression) => {
+    conversionMap.set('Pipe', (moduleContext, expression) => {
       let p0 = this.getDecoratorParameter(moduleContext, expression, 0);
       if (!isPresent(p0)) {
         p0 = {};
@@ -252,10 +251,10 @@ export class StaticReflector implements ReflectorReader {
         pure: p0['pure'],
       });
     });
-    conversionMap.set(this.getStaticType(core_metadata, 'HostBinding'),
+    conversionMap.set('HostBinding',
                       (moduleContext, expression) => new HostBindingMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set(this.getStaticType(core_metadata, 'HostListener'),
+    conversionMap.set('HostListener',
                       (moduleContext, expression) => new HostListenerMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0),
                           this.getDecoratorParameter(moduleContext, expression, 1)));
@@ -263,7 +262,7 @@ export class StaticReflector implements ReflectorReader {
   }
 
   private convertKnownDecorator(moduleContext: string, expression: {[key: string]: any}): any {
-    let converter = this.conversionMap.get(this.getDecoratorType(moduleContext, expression));
+    let converter = this.conversionMap.get(this.getDecoratorType(moduleContext, expression).name);
     if (isPresent(converter)) return converter(moduleContext, expression);
     return null;
   }

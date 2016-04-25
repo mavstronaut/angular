@@ -1,4 +1,4 @@
-import {Component} from 'angular2/src/core/metadata';
+import {Component} from 'angular2/core';
 
 @Component({
   selector: 'my-comp',
@@ -14,4 +14,7 @@ export class MyComp {
 export class NextComp {
 }
 
-export class NoDecorators {}
+// Verify that exceptions from DirectiveResolver don't propagate
+function NotADirective(c: any): void {}
+@NotADirective
+export class HasCustomDecorator {}

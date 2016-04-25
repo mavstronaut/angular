@@ -60,9 +60,9 @@ export class CodeGenerator {
       const staticType = this.staticReflector.getStaticType(absSourcePath, symbol);
 
       let directive: compiler.CompileDirectiveMetadata;
-      directive = this.resolver.getDirectiveMetadata(<any>staticType);
+      directive = this.resolver.maybeGetDirectiveMetadata(<any>staticType);
 
-      if (!directive.isComponent) {
+      if (!directive || !directive.isComponent) {
         continue;
       }
       result.push(this.compiler.normalizeDirectiveMetadata(directive).then((m) => {

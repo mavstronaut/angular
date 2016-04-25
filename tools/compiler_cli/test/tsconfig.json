@@ -23,6 +23,7 @@
          */
         "baseUrl": "../../..",
         "paths": {
+          "angular3/*": ["dist/js/cjs/angular2/*"],
           "angular2/*": ["dist/js/cjs/angular2/*"],
           "rxjs/*": ["node_modules/rxjs/*"],
           "ts-metadata-collector": ["dist/tools/metadata"]

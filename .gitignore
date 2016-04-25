@@ -21,8 +21,7 @@ tmp
 *.js.deps
 *.js.map
 
-# Files created by the template compiler 
-**/codegen
+# Files created by the template compiler
 **/*.ngfactory.ts
 
 # Or type definitions we mirror from github

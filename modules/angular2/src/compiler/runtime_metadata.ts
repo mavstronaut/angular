@@ -135,6 +135,18 @@ export class RuntimeMetadataResolver {
     return meta;
   }
 
+  /**
+   * @param someType a symbol which may or may not be a directive type
+   * @returns {cpl.CompileDirectiveMetadata} if possible, otherwise null.
+   */
+  maybeGetDirectiveMetadata(someType: Type): cpl.CompileDirectiveMetadata {
+    try {
+      return this.getDirectiveMetadata(someType);
+    } catch (e) {
+      return null;
+    }
+  }
+
   getTypeMetadata(type: Type, moduleUrl: string): cpl.CompileTypeMetadata {
     return new cpl.CompileTypeMetadata({
       name: this.sanitizeTokenName(type),

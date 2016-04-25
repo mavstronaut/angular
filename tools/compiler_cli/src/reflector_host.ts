@@ -32,7 +32,9 @@ export class NodeReflectorHost implements StaticReflectorHost {
     if (!sf) {
       throw new Error(`Source file ${filePath} not present in program.`);
     }
-    return this.metadataCollector.getMetadata(sf, this.program.getTypeChecker());
+    const metadata =  this.metadataCollector.getMetadata(sf, this.program.getTypeChecker());
+    console.log(JSON.stringify(metadata));
+    return metadata;
   }
 
   readMetadata(filePath: string) {
