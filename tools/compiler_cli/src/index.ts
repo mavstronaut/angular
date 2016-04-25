@@ -1,7 +1,7 @@
 // TODO(alexeagle): use --lib=node when available; remove this reference
 /// <reference path="../../typings/node/node.d.ts"/>
 
-// Must be imported first.
+// Must be imported first, because angular2 decorators throws on load.
 import 'reflect-metadata';
 
 import * as fs from 'fs';

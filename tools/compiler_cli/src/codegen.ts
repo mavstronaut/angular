@@ -4,14 +4,11 @@
  */
 import * as ts from 'typescript';
 import * as path from 'path';
-import {MetadataCollector, MetadataCollectorHost} from 'ts-metadata-collector';
-import {basename} from 'path';
-import {StaticReflector, StaticReflectorHost} from "angular2/src/compiler/static_reflector";
-import {NodeReflectorHost} from './reflector_host';
-import {wrapCompilerHost} from './compiler_host';
-
 import * as compiler from 'angular2/compiler';
 
+import {MetadataCollector, MetadataCollectorHost} from 'ts-metadata-collector';
+import {NodeReflectorHost} from './reflector_host';
+import {wrapCompilerHost} from './compiler_host';
 import {RouterLinkTransform} from "angular2/src/router/directives/router_link_transform";
 
 const SOURCE_EXTENSION = /\.[jt]s$/;
@@ -31,7 +28,7 @@ export type CodeGeneratorHost = ts.CompilerHost & MetadataCollectorHost;
 export class CodeGenerator {
   constructor(private ngOptions: AngularCompilerOptions, private basePath: string,
               public program: ts.Program, public host: CodeGeneratorHost,
-              private staticReflector: StaticReflector, private resolver: compiler.RuntimeMetadataResolver,
+              private staticReflector: compiler.StaticReflector, private resolver: compiler.RuntimeMetadataResolver,
               private compiler: compiler.OfflineCompiler) {}
 
   private generateSource(metadatas: compiler.CompileDirectiveMetadata[]) {
@@ -43,72 +40,62 @@ export class CodeGenerator {
     };
 
     return this.compiler.compileTemplates(metadatas.map(normalize));
-  };
+  }
 
-  codegen() {
-    const promises = this.program.getRootFileNames().map((absSourcePath) => {
+  private readComponents(absSourcePath:string) {
+      const result: Promise<compiler.CompileDirectiveMetadata>[] = [];
       let metadata = this.staticReflector.getModuleMetadata(absSourcePath);
 
       if (!metadata) {
         console.log(`WARNING: no metadata found for ${absSourcePath}`);
-        return;
+        return result;
       }
 
-      const componentMetadatas: Promise<compiler.CompileDirectiveMetadata>[] = [];
       const symbols = Object.keys(metadata['metadata']);
       if (!symbols || !symbols.length) {
-        return;
+        return result;
       }
       for (const symbol of symbols) {
         const staticType = this.staticReflector.getStaticType(absSourcePath, symbol);
 
         let directive: compiler.CompileDirectiveMetadata;
-        try {
-          directive = this.resolver.getDirectiveMetadata(<any>staticType);
-        } catch (e) {
-          // TODO: directive resolver throws on non-directive symbols
-          // for now, just catch those and continue
-          if (e.message && e.message.indexOf('No Directive annotation') == 0) {
-            continue;
-          }
-          console.error(e);
-          throw e;
-        }
+        directive = this.resolver.getDirectiveMetadata(<any>staticType);
+
         if (!directive.isComponent) {
           continue;
         }
-        componentMetadatas.push(this.compiler.normalizeDirectiveMetadata(directive).then((m) => {
+        result.push(this.compiler.normalizeDirectiveMetadata(directive).then((m) => {
           m.type.moduleUrl =
-              'asset:tmp/lib/' + basename(absSourcePath).replace(SOURCE_EXTENSION, '');
+              'asset:tmp/lib/' + path.basename(absSourcePath).replace(SOURCE_EXTENSION, '');
           return m;
         }));
       }
-
-      return Promise.all(componentMetadatas)
-          .then((metadatas: compiler.CompileDirectiveMetadata[]) => {
-            if (!metadatas || !metadatas.length) {
-              console.log(`Not writing template for ${absSourcePath}: no metadatas`);
-              return;
-            }
-            const generated = this.generateSource(metadatas);
-            const sourceFile = this.program.getSourceFile(absSourcePath);
-
-            // Write codegen in a directory structure matching the sources.
-            // TODO(alexeagle): maybe use generated.moduleUrl instead of hardcoded ".ngfactory.ts"
-            // TODO(alexeagle): relativize paths by the rootDirs option
-            const emitPath =
-                path.join(this.ngOptions.genDir, path.relative(this.basePath, absSourcePath))
-                    .replace(SOURCE_EXTENSION, '.ngfactory.ts');
-            this.host.writeFile(emitPath, PREAMBLE + generated.source, false, () => {},
-                                [sourceFile]);
-          })
-          .catch((e) => { console.error('ERROR', e, e.stack); });
-    });
-
-    return Promise.all(promises).then(() => {});
+      return result;
   }
 
-  // TODO: use DI to create this object graph??
+  codegen() {
+    const generateOneFile = (absSourcePath: string) => Promise.all(this.readComponents(absSourcePath))
+      .then((metadatas: compiler.CompileDirectiveMetadata[]) => {
+        if (!metadatas || !metadatas.length) {
+          return;
+        }
+        const generated = this.generateSource(metadatas);
+        const sourceFile = this.program.getSourceFile(absSourcePath);
+
+        // Write codegen in a directory structure matching the sources.
+        // TODO(alexeagle): maybe use generated.moduleUrl instead of hardcoded ".ngfactory.ts"
+        // TODO(alexeagle): relativize paths by the rootDirs option
+        const emitPath =
+          path.join(this.ngOptions.genDir, path.relative(this.basePath, absSourcePath))
+            .replace(SOURCE_EXTENSION, '.ngfactory.ts');
+        this.host.writeFile(emitPath, PREAMBLE + generated.source, false, () => {},
+          [sourceFile]);
+      })
+      .catch((e) => { console.error('ERROR', e, e.stack); });
+
+    return Promise.all(this.program.getRootFileNames().map(generateOneFile));
+  }
+
   static create(ngOptions: AngularCompilerOptions, parsed: ts.ParsedCommandLine, basePath: string,
                 originalHost: ts.CompilerHost):
       {errors?: ts.Diagnostic[], generator?: CodeGenerator} {
@@ -123,7 +110,7 @@ export class CodeGenerator {
     const reflectorHost = new NodeReflectorHost(program, metadataCollector, compilerHost);
     const xhr: compiler.XHR = {get: (s: string) => Promise.resolve(compilerHost.readFile(s))};
     const urlResolver: compiler.UrlResolver = compiler.createOfflineCompileUrlResolver();
-    const staticReflector = new StaticReflector(reflectorHost);
+    const staticReflector = new compiler.StaticReflector(reflectorHost);
     const htmlParser = new compiler.HtmlParser();
     const normalizer = new compiler.DirectiveNormalizer(xhr, urlResolver, htmlParser);
     const parser = new compiler.Parser(new compiler.Lexer());

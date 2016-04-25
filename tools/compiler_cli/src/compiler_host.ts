@@ -64,7 +64,7 @@ class ReverseModuleResolutionHost extends DelegatingHost implements MetadataColl
   };
 
   reverseModuleResolution(fileName: string) {
-    // NB. TS parsed options gives baseUrl relative to basePath, not the same as in tsconfig.
+    // The parsed options have absolute paths, eg.
     // basePath: 'path/to/project' and baseUrl: '../../..' => parsed.options.baseUrl: '.'
     const relPath = path.relative(this.options.baseUrl, fileName);
     const result = this.reverseMap[relPath];
@@ -75,7 +75,6 @@ class ReverseModuleResolutionHost extends DelegatingHost implements MetadataColl
   }
 }
 
-// TODO(alexeagle): workaround https://github.com/Microsoft/TypeScript/issues/8245 ??
 export function wrapCompilerHost(delegate: ts.CompilerHost,
                                  options: ts.CompilerOptions): ts.CompilerHost &
     MetadataCollectorHost {

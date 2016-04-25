@@ -7,7 +7,7 @@ import {AngularCompilerOptions, CodeGeneratorHost} from './codegen';
 /**
  * Our interface to the TypeScript standard compiler.
  * If you write an Angular compiler plugin for another build tool,
- * you should implementa similar interface.
+ * you should implement a similar interface.
  */
 export interface CompilerInterface {
   readConfiguration(
@@ -43,7 +43,7 @@ export function check(diags: ts.Diagnostic[]) {
   }
 }
 
-export class TSC implements CompilerInterface {
+export class Tsc implements CompilerInterface {
   public ngOptions: AngularCompilerOptions;
   public parsed: ts.ParsedCommandLine;
   private basePath: string;
@@ -64,18 +64,10 @@ export class TSC implements CompilerInterface {
 
     check(this.parsed.errors);
 
-    // Default codegen goes to the output directory
+    // Default codegen goes to the current directory
     // Parsed options are already converted to absolute paths
-    let genDir = this.parsed.options.outDir;
     this.ngOptions = config.angularCompilerOptions || {};
-    if (this.ngOptions.genDir) {
-      // Paths in tsconfig should be relative to the location of the tsconfig
-      genDir = path.join(basePath, this.ngOptions.genDir);
-    }
-    if (!genDir) {
-      throw new Error("Must set either compilerOptions.outDir or angularCompilerOptions.genDir");
-    }
-    this.ngOptions.genDir = genDir;
+    this.ngOptions.genDir = path.join(basePath, this.ngOptions.genDir || '.');
     return {parsed: this.parsed, ngOptions: this.ngOptions};
   }
 
@@ -101,4 +93,4 @@ export class TSC implements CompilerInterface {
     return emitSkipped ? 1 : 0;
   }
 }
-export var tsc: CompilerInterface = new TSC();
+export var tsc: CompilerInterface = new Tsc();

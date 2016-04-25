@@ -13,3 +13,5 @@ export class MyComp {
 })
 export class NextComp {
 }
+
+export class NoDecorators {}
