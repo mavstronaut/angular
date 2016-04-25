@@ -54,6 +54,10 @@ class ReverseModuleResolutionHost extends DelegatingHost implements MetadataColl
         // Only care about absolute imports, which are subject to baseUrl/paths
         if (moduleName.indexOf(".") !== 0) {
           const modulePath = path.relative('.', resolved.resolvedModule.resolvedFileName);
+          if (this.reverseMap[modulePath] && this.reverseMap[modulePath] !== moduleName) {
+            throw new Error(`Cannot uniquely reverse module resolution.\n
+            Path ${modulePath} is resolved from ${moduleName} and ${this.reverseMap[modulePath]}`);
+          }
           debug(`Adding reverse mapping ${modulePath} => ${moduleName}`);
           this.reverseMap[modulePath] = moduleName;
         }
