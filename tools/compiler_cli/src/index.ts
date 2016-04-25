@@ -24,8 +24,7 @@ export function main(project: string, basePath?: string): Promise<number> {
   // read the configuration options from wherever you store them
   const {parsed, ngOptions} = tsc.readConfiguration(project, basePath);
 
-
-  const {errors, generator} = CodeGenerator.create(ngOptions, parsed, ts.createCompilerHost(parsed.options, true));
+  const {errors, generator} = CodeGenerator.create(ngOptions, parsed, basePath, ts.createCompilerHost(parsed.options, true));
   check(errors);
 
   return generator.codegen()
