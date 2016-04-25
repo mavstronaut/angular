@@ -15,15 +15,30 @@ and then downloading only the executable JS to the client.
 The `tsconfig.json` file is expected to contain an additional configuration block:
 ```
  "angularCompilerOptions": {
-   "genDir": "codegen"
+   "genDir": "."
  }
 ```
 the `genDir` option controls the path (relative to `tsconfig.json`) where the generated file tree
 will be written. More options may be added as we implement more features.
 
-You can include this generated folder into your application using the `rootDirs` option to
-TypeScript 1.9 and above. This allows your application to live in two different root folders,
-but import statements act as if the files are all together in the same tree.
+We recommend you avoid checking generated files into version control. This permits a state where
+the generated files in the repository were created from sources that were never checked in,
+making it impossible to reproduce the current state. Also, your changes will effectively appear
+twice in code reviews, with the generated version inscrutible by the reviewer.
+
+In TypeScript 1.8, the generated sources will have to be written alongside your originals,
+so set `genDir` to the same location as your files (typicially the same as `rootDir`).
+Add `**/*.ngfactory.ts` to your `.gitignore` or other mechanism for your version control system.
+
+TypeScript 1.9 and above, you can add a generated folder into your application,
+such as `codegen`. Using the `rootDirs` option, you can allow relative imports like
+`import {} from './foo.ngfactory'` even though the `src` and `codegen` trees are distinct.
+Add `**/codegen` to your `.gitignore` or similar.
+
+Note that in the second option, TypeScript will emit the code into two parallel directories
+as well. This is by design, see https://github.com/Microsoft/TypeScript/issues/8245.
+This makes the configuration of your runtime module loader more complex, so we don't recommend
+this option yet.
 
 See the example in the `test/` directory for a working example.
 

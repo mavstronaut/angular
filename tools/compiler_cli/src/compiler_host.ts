@@ -83,7 +83,7 @@ class ReverseModuleResolutionHost extends DelegatingHost implements MetadataColl
 }
 
 // TODO(alexeagle): workaround https://github.com/Microsoft/TypeScript/issues/8245 ??
-export function createCompilerHost(delegate: ts.CompilerHost,
+export function wrapCompilerHost(delegate: ts.CompilerHost,
                                    options: ts.CompilerOptions): ts.CompilerHost &
     MetadataCollectorHost {
   return new ReverseModuleResolutionHost(delegate, options);

@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 import {tsc, check} from './tsc';
-import {createCompilerHost} from './compiler_host';
+
 import {CodeGenerator} from './codegen';
 
 const DEBUG = false;
@@ -24,14 +24,14 @@ export function main(project: string, basePath?: string): Promise<number> {
   // read the configuration options from wherever you store them
   const {parsed, ngOptions} = tsc.readConfiguration(project, basePath);
 
-  // use our compiler host, which wraps the built-in one from TypeScript
-  const compilerHost =
-      createCompilerHost(ts.createCompilerHost(parsed.options, true), parsed.options);
-  const {errors, generator} = CodeGenerator.create(ngOptions, parsed, compilerHost);
+
+  const {errors, generator} = CodeGenerator.create(ngOptions, parsed, ts.createCompilerHost(parsed.options, true));
   check(errors);
 
   return generator.codegen()
-      .then(() => { return tsc.typeCheckAndEmit(compilerHost, generator.program); })
+      // use our compiler host, which wraps the built-in one from TypeScript
+      // This allows us to add features like --stripDesignTimeDecorators to optimize your application more.
+      .then(() => tsc.typeCheckAndEmit(generator.host, generator.program))
       .catch(rejected => {
         console.error('Compile failed\n', rejected.message);
         throw new Error(rejected);

@@ -2,7 +2,7 @@ import * as ts from 'typescript';
 // Don't import from fs in general, that's the CompilerHost's job
 import {lstatSync} from 'fs';
 import * as path from 'path';
-import {AngularCompilerOptions} from './codegen';
+import {AngularCompilerOptions, CodeGeneratorHost} from './codegen';
 
 /**
  * Our interface to the TypeScript standard compiler.
@@ -13,7 +13,7 @@ export interface CompilerInterface {
   readConfiguration(
       project: string,
       basePath: string): {parsed: ts.ParsedCommandLine, ngOptions: AngularCompilerOptions};
-  typeCheckAndEmit(compilerHost: ts.CompilerHost, oldProgram?: ts.Program): number;
+  typeCheckAndEmit(compilerHost: CodeGeneratorHost, oldProgram?: ts.Program): number;
 }
 
 const DEBUG = false;

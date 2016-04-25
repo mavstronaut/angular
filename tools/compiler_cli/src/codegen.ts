@@ -8,6 +8,7 @@ import {MetadataCollector, MetadataCollectorHost} from 'ts-metadata-collector';
 import {basename} from 'path';
 import {StaticReflector, StaticReflectorHost} from "angular2/src/compiler/static_reflector";
 import {NodeReflectorHost} from './reflector_host';
+import {wrapCompilerHost} from './compiler_host';
 
 import * as compiler from 'angular2/src/compiler/compiler';
 // TODO(alexeagle): expose these through angular2/src/compiler/compiler as well?
@@ -42,7 +43,7 @@ export type CodeGeneratorHost = ts.CompilerHost & MetadataCollectorHost;
 
 export class CodeGenerator {
   constructor(private ngOptions: AngularCompilerOptions, public program: ts.Program,
-              private host: ts.CompilerHost, private staticReflector: StaticReflector,
+              public host: CodeGeneratorHost, private staticReflector: StaticReflector,
               private resolver: RuntimeMetadataResolver,
               private compiler: compiler.OfflineCompiler) {}
 
@@ -123,8 +124,9 @@ export class CodeGenerator {
 
   // TODO: use DI to create this object graph??
   static create(ngOptions: AngularCompilerOptions, parsed: ts.ParsedCommandLine,
-                compilerHost: CodeGeneratorHost):
+                originalHost: ts.CompilerHost):
       {errors?: ts.Diagnostic[], generator?: CodeGenerator} {
+    const compilerHost = wrapCompilerHost(originalHost, parsed.options);
     const program = ts.createProgram(parsed.fileNames, parsed.options, compilerHost);
     const errors = program.getOptionsDiagnostics();
     if (errors && errors.length) {
