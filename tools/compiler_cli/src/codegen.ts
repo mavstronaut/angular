@@ -42,9 +42,9 @@ export interface AngularCompilerOptions {
 export type CodeGeneratorHost = ts.CompilerHost & MetadataCollectorHost;
 
 export class CodeGenerator {
-  constructor(private ngOptions: AngularCompilerOptions, private basePath: string, public program: ts.Program,
-              public host: CodeGeneratorHost, private staticReflector: StaticReflector,
-              private resolver: RuntimeMetadataResolver,
+  constructor(private ngOptions: AngularCompilerOptions, private basePath: string,
+              public program: ts.Program, public host: CodeGeneratorHost,
+              private staticReflector: StaticReflector, private resolver: RuntimeMetadataResolver,
               private compiler: compiler.OfflineCompiler) {}
 
   private generateSource(metadatas: compiler.CompileDirectiveMetadata[]) {
@@ -109,8 +109,11 @@ export class CodeGenerator {
             // Write codegen in a directory structure matching the sources.
             // TODO(alexeagle): maybe use generated.moduleUrl instead of hardcoded ".ngfactory.ts"
             // TODO(alexeagle): relativize paths by the rootDirs option
-            const emitPath = path.join(this.ngOptions.genDir, path.relative(this.basePath, absSourcePath)).replace(SOURCE_EXTENSION, '.ngfactory.ts');
-            this.host.writeFile(emitPath, PREAMBLE + generated.source, false, () => {}, [sourceFile]);
+            const emitPath =
+                path.join(this.ngOptions.genDir, path.relative(this.basePath, absSourcePath))
+                    .replace(SOURCE_EXTENSION, '.ngfactory.ts');
+            this.host.writeFile(emitPath, PREAMBLE + generated.source, false, () => {},
+                                [sourceFile]);
           })
           .catch((e) => { console.error('ERROR', e, e.stack); });
     });
@@ -119,8 +122,8 @@ export class CodeGenerator {
   }
 
   // TODO: use DI to create this object graph??
-  static create(ngOptions: AngularCompilerOptions, parsed: ts.ParsedCommandLine,
-                basePath: string, originalHost: ts.CompilerHost):
+  static create(ngOptions: AngularCompilerOptions, parsed: ts.ParsedCommandLine, basePath: string,
+                originalHost: ts.CompilerHost):
       {errors?: ts.Diagnostic[], generator?: CodeGenerator} {
     const compilerHost = wrapCompilerHost(originalHost, parsed.options);
     const program = ts.createProgram(parsed.fileNames, parsed.options, compilerHost);
@@ -146,8 +149,8 @@ export class CodeGenerator {
         new compiler.DirectiveResolver(staticReflector), new compiler.PipeResolver(staticReflector),
         new compiler.ViewResolver(staticReflector), null, null, staticReflector);
     return {
-      generator: new CodeGenerator(ngOptions, basePath, program, compilerHost, staticReflector, resolver,
-                                   offlineCompiler)
+      generator: new CodeGenerator(ngOptions, basePath, program, compilerHost, staticReflector,
+                                   resolver, offlineCompiler)
     };
   }
 }

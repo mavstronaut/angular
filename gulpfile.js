@@ -469,7 +469,7 @@ function runKarma(configFile, done) {
 }
 
 // Gulp-typescript doesn't work with typescript@next:
-// https://github.com/ivogabe/gulp-typescript/issues/299
+// https://github.com/ivogabe/gulp-typescript/issues/331
 function runTsc(project, done) {
   execProcess('tsc', '-p ' + project, function(e, stdout, stderr) {
     if (e) {

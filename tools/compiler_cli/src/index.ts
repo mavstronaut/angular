@@ -24,12 +24,14 @@ export function main(project: string, basePath?: string): Promise<number> {
   // read the configuration options from wherever you store them
   const {parsed, ngOptions} = tsc.readConfiguration(project, basePath);
 
-  const {errors, generator} = CodeGenerator.create(ngOptions, parsed, basePath, ts.createCompilerHost(parsed.options, true));
+  const {errors, generator} = CodeGenerator.create(ngOptions, parsed, basePath,
+                                                   ts.createCompilerHost(parsed.options, true));
   check(errors);
 
   return generator.codegen()
       // use our compiler host, which wraps the built-in one from TypeScript
-      // This allows us to add features like --stripDesignTimeDecorators to optimize your application more.
+      // This allows us to add features like --stripDesignTimeDecorators to optimize your
+      // application more.
       .then(() => tsc.typeCheckAndEmit(generator.host, generator.program))
       .catch(rejected => {
         console.error('Compile failed\n', rejected.message);
