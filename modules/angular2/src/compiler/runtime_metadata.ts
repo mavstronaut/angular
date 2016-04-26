@@ -99,12 +99,14 @@ export class RuntimeMetadataResolver {
         });
         changeDetectionStrategy = cmpMeta.changeDetection;
         if (isPresent(dirMeta.viewProviders)) {
+          console.log("directive", directiveType);
           viewProviders = this.getProvidersMetadata(dirMeta.viewProviders);
         }
       }
 
       var providers = [];
       if (isPresent(dirMeta.providers)) {
+        console.log("directive", directiveType);
         providers = this.getProvidersMetadata(dirMeta.providers);
       }
       var queries = [];
@@ -143,7 +145,11 @@ export class RuntimeMetadataResolver {
     try {
       return this.getDirectiveMetadata(someType);
     } catch (e) {
-      return null;
+      if (/No Directive annotation/.test(e.message)) {
+        return null;
+      }
+      console.log(someType, e);
+      throw e;
     }
   }
 
@@ -190,7 +196,7 @@ export class RuntimeMetadataResolver {
             `Unexpected directive value '${stringify(directives[i])}' on the View of component '${stringify(component)}'`);
       }
     }
-
+console.log(`directives.map:`, directives);
     return directives.map(type => this.getDirectiveMetadata(type));
   }
 
@@ -262,6 +268,7 @@ export class RuntimeMetadataResolver {
 
   getProvidersMetadata(providers: any[]):
       Array<cpl.CompileProviderMetadata | cpl.CompileTypeMetadata | any[]> {
+    console.log("providersMetadata", providers);
     return providers.map((provider) => {
       provider = resolveForwardRef(provider);
       if (isArray(provider)) {
@@ -359,7 +366,8 @@ function flattenArray(tree: any[], out: Array<Type | any[]>): void {
 }
 
 function isValidType(value: Type): boolean {
-  return isPresent(value) && (value instanceof Type);
+  // TODO: also check for static type
+  return isPresent(value); // && (value instanceof Type);
 }
 
 function calcModuleUrl(reflector: ReflectorReader, type: Type,

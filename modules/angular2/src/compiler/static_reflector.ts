@@ -262,17 +262,16 @@ export class StaticReflector implements ReflectorReader {
   }
 
   private convertKnownDecorator(moduleContext: string, expression: {[key: string]: any}): any {
-    let converter = this.conversionMap.get(this.getDecoratorType(moduleContext, expression).name);
+    let converter = this.conversionMap.get(this.getDecoratorType(expression));
     if (isPresent(converter)) return converter(moduleContext, expression);
     return null;
   }
 
-  private getDecoratorType(moduleContext: string, expression: {[key: string]: any}): StaticType {
+  private getDecoratorType(expression: {[key: string]: any}): string {
     if (isMetadataSymbolicCallExpression(expression)) {
       let target = expression['expression'];
       if (isMetadataSymbolicReferenceExpression(target)) {
-        let moduleId = this.normalizeModuleName(moduleContext, target['module']);
-        return this.getStaticType(moduleId, target['name']);
+        return target['name'];
       }
     }
     return null;
