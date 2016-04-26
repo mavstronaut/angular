@@ -1,12 +1,8 @@
-import {ListWrapper, StringMapWrapper} from 'angular2/src/facade/collection';
+import {StringMapWrapper} from 'angular2/src/facade/collection';
 import {
   isArray,
-  isBlank,
-  isNumber,
   isPresent,
   isPrimitive,
-  isString,
-  Type
 } from 'angular2/src/facade/lang';
 import {
   AttributeMetadata,
@@ -35,13 +31,19 @@ import {ReflectorReader} from 'angular2/src/core/reflection/reflector_reader';
  */
 export interface StaticReflectorHost {
   /**
-   *  Return a ModuleMetadata for the give module.
+   *  Return a ModuleMetadata for the given module.
    *
-   * @param moduleId is a string identifier for a module in the form that would expected in a
-   *                 module import of an import statement.
+   * @param moduleId is a string identifier for a module as an absolute path.
    * @returns the metadata for the given module.
    */
   getMetadataFor(moduleId: string): {[key: string]: any};
+
+  /**
+   * Resolve a module from an import statement form to an absolute path.
+   * @param moduleName the location imported from
+   * @param containingFile for relative imports, the path of the file containing the import
+   */
+  resolveModule(moduleName: string, containingFile?: string): string;
 }
 
 /**
@@ -68,10 +70,10 @@ export class StaticReflector implements ReflectorReader {
   importUri(typeOrFunc: any): string { return (<StaticType>typeOrFunc).moduleId; }
 
   /**
-   * getStatictype produces a Type whose metadata is known but whose implementation is not loaded.
+   * getStaticType produces a Type whose metadata is known but whose implementation is not loaded.
    * All types passed to the StaticResolver should be pseudo-types returned by this method.
    *
-   * @param moduleId the module identifier as would be passed to an import statement.
+   * @param moduleId the module identifier as an absolute path.
    * @param name the name of the type.
    */
   public getStaticType(moduleId: string, name: string): StaticType {
@@ -135,10 +137,11 @@ export class StaticReflector implements ReflectorReader {
     return parameters;
   }
 
-  private conversionMap = new Map<string, (moduleContext: string, expression: any) => any>();
+  private conversionMap = new Map<StaticType, (moduleContext: string, expression: any) => any>();
   private initializeConversionMap(): any {
+    let core_metadata = this.host.resolveModule('angular2/src/core/metadata');
     let conversionMap = this.conversionMap;
-    conversionMap.set('Directive',
+    conversionMap.set(this.getStaticType(core_metadata, 'Directive'),
                       (moduleContext, expression) => {
                         let p0 = this.getDecoratorParameter(moduleContext, expression, 0);
                         if (!isPresent(p0)) {
@@ -156,7 +159,7 @@ export class StaticReflector implements ReflectorReader {
                           queries: p0['queries'],
                         });
                       });
-    conversionMap.set('Component',
+    conversionMap.set(this.getStaticType(core_metadata, 'Component'),
                       (moduleContext, expression) => {
                         let p0 = this.getDecoratorParameter(moduleContext, expression, 0);
                         if (!isPresent(p0)) {
@@ -186,13 +189,13 @@ export class StaticReflector implements ReflectorReader {
                           encapsulation: p0['encapsulation']
                         });
                       });
-    conversionMap.set('Input',
+    conversionMap.set(this.getStaticType(core_metadata, 'Input'),
                       (moduleContext, expression) => new InputMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set('Output',
+    conversionMap.set(this.getStaticType(core_metadata, 'Output'),
                       (moduleContext, expression) => new OutputMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set('View', (moduleContext, expression) => {
+    conversionMap.set(this.getStaticType(core_metadata, 'View'), (moduleContext, expression) => {
       let p0 = this.getDecoratorParameter(moduleContext, expression, 0);
       if (!isPresent(p0)) {
         p0 = {};
@@ -206,10 +209,10 @@ export class StaticReflector implements ReflectorReader {
         styles: p0['styles'],
       });
     });
-    conversionMap.set('Attribute',
+    conversionMap.set(this.getStaticType(core_metadata, 'Attribute'),
                       (moduleContext, expression) => new AttributeMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set('Query', (moduleContext, expression) => {
+    conversionMap.set(this.getStaticType(core_metadata, 'Query'), (moduleContext, expression) => {
       let p0 = this.getDecoratorParameter(moduleContext, expression, 0);
       let p1 = this.getDecoratorParameter(moduleContext, expression, 1);
       if (!isPresent(p1)) {
@@ -217,19 +220,19 @@ export class StaticReflector implements ReflectorReader {
       }
       return new QueryMetadata(p0, {descendants: p1.descendants, first: p1.first});
     });
-    conversionMap.set('ContentChildren',
+    conversionMap.set(this.getStaticType(core_metadata, 'ContentChildren'),
                       (moduleContext, expression) => new ContentChildrenMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set('ContentChild',
+    conversionMap.set(this.getStaticType(core_metadata, 'ContentChild'),
                       (moduleContext, expression) => new ContentChildMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set('ViewChildren',
+    conversionMap.set(this.getStaticType(core_metadata, 'ViewChildren'),
                       (moduleContext, expression) => new ViewChildrenMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set('ViewChild',
+    conversionMap.set(this.getStaticType(core_metadata, 'ViewChild'),
                       (moduleContext, expression) => new ViewChildMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set('ViewQuery',
+    conversionMap.set(this.getStaticType(core_metadata, 'ViewQuery'),
                       (moduleContext, expression) => {
                         let p0 = this.getDecoratorParameter(moduleContext, expression, 0);
                         let p1 = this.getDecoratorParameter(moduleContext, expression, 1);
@@ -241,7 +244,7 @@ export class StaticReflector implements ReflectorReader {
                           first: p1['first'],
                         });
                       });
-    conversionMap.set('Pipe', (moduleContext, expression) => {
+    conversionMap.set(this.getStaticType(core_metadata, 'Pipe'), (moduleContext, expression) => {
       let p0 = this.getDecoratorParameter(moduleContext, expression, 0);
       if (!isPresent(p0)) {
         p0 = {};
@@ -251,10 +254,10 @@ export class StaticReflector implements ReflectorReader {
         pure: p0['pure'],
       });
     });
-    conversionMap.set('HostBinding',
+    conversionMap.set(this.getStaticType(core_metadata, 'HostBinding'),
                       (moduleContext, expression) => new HostBindingMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0)));
-    conversionMap.set('HostListener',
+    conversionMap.set(this.getStaticType(core_metadata, 'HostListener'),
                       (moduleContext, expression) => new HostListenerMetadata(
                           this.getDecoratorParameter(moduleContext, expression, 0),
                           this.getDecoratorParameter(moduleContext, expression, 1)));
@@ -262,16 +265,17 @@ export class StaticReflector implements ReflectorReader {
   }
 
   private convertKnownDecorator(moduleContext: string, expression: {[key: string]: any}): any {
-    let converter = this.conversionMap.get(this.getDecoratorType(expression));
+    let converter = this.conversionMap.get(this.getDecoratorType(moduleContext, expression));
     if (isPresent(converter)) return converter(moduleContext, expression);
     return null;
   }
 
-  private getDecoratorType(expression: {[key: string]: any}): string {
+  private getDecoratorType(moduleContext: string, expression: {[key: string]: any}): StaticType {
     if (isMetadataSymbolicCallExpression(expression)) {
       let target = expression['expression'];
       if (isMetadataSymbolicReferenceExpression(target)) {
-        return target['name'];
+        let moduleId = this.host.resolveModule(target['module'], moduleContext);
+        return this.getStaticType(moduleId, target['name']);
       }
     }
     return null;
@@ -415,7 +419,7 @@ export class StaticReflector implements ReflectorReader {
               return null;
             case "reference":
               let referenceModuleName =
-                  _this.normalizeModuleName(moduleContext, expression['module']);
+                  _this.host.resolveModule(expression['module'], moduleContext);
               let referenceModule = _this.getModuleMetadata(referenceModuleName);
               let referenceValue = referenceModule['metadata'][expression['name']];
               if (isClassMetadata(referenceValue)) {
@@ -438,6 +442,9 @@ export class StaticReflector implements ReflectorReader {
     return simplify(value);
   }
 
+  /**
+   * @param module an absolute path to a module file.
+   */
   public getModuleMetadata(module: string): {[key: string]: any} {
     let moduleMetadata = this.metadataCache.get(module);
     if (!isPresent(moduleMetadata)) {
@@ -458,13 +465,6 @@ export class StaticReflector implements ReflectorReader {
     }
     return result;
   }
-
-  private normalizeModuleName(from: string, to: string): string {
-    if (to.startsWith('.')) {
-      return pathTo(from, to);
-    }
-    return to;
-  }
 }
 
 function isMetadataSymbolicCallExpression(expression: any): boolean {
@@ -478,36 +478,4 @@ function isMetadataSymbolicReferenceExpression(expression: any): boolean {
 
 function isClassMetadata(expression: any): boolean {
   return !isPrimitive(expression) && !isArray(expression) && expression['__symbolic'] == 'class';
-}
-
-function splitPath(path: string): string[] {
-  return path.split(/\/|\\/g);
-}
-
-function resolvePath(pathParts: string[]): string {
-  let result = [];
-  ListWrapper.forEachWithIndex(pathParts, (part, index) => {
-    switch (part) {
-      case '':
-      case '.':
-        if (index > 0) return;
-        break;
-      case '..':
-        if (index > 0 && result.length != 0) result.pop();
-        return;
-    }
-    result.push(part);
-  });
-  return result.join('/');
-}
-
-function pathTo(from: string, to: string): string {
-  let result = to;
-  if (to.startsWith('.')) {
-    let fromParts = splitPath(from);
-    fromParts.pop();  // remove the file name.
-    let toParts = splitPath(to);
-    result = resolvePath(fromParts.concat(toParts));
-  }
-  return result;
 }
