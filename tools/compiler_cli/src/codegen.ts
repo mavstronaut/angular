@@ -6,9 +6,9 @@ import * as ts from 'typescript';
 import * as path from 'path';
 import * as compiler from 'angular2/compiler';
 
-import {MetadataCollector, MetadataCollectorHost} from 'ts-metadata-collector';
+import {MetadataCollector} from 'ts-metadata-collector';
 import {NodeReflectorHost} from './reflector_host';
-import {wrapCompilerHost} from './compiler_host';
+import {wrapCompilerHost, CodeGeneratorHost} from './compiler_host';
 import {RouterLinkTransform} from "angular2/src/router/directives/router_link_transform";
 
 const SOURCE_EXTENSION = /\.[jt]s$/;
@@ -22,8 +22,6 @@ export interface AngularCompilerOptions {
   // Absolute path to a directory where generated file structure is written
   genDir: string;
 }
-
-export type CodeGeneratorHost = ts.CompilerHost & MetadataCollectorHost;
 
 export class CodeGenerator {
   constructor(private ngOptions: AngularCompilerOptions, private basePath: string,
@@ -108,7 +106,7 @@ export class CodeGenerator {
       return {errors};
     }
 
-    const metadataCollector = new MetadataCollector(compilerHost);
+    const metadataCollector = new MetadataCollector();
     const reflectorHost = new NodeReflectorHost(program, metadataCollector, compilerHost);
     const xhr: compiler.XHR = {get: (s: string) => Promise.resolve(compilerHost.readFile(s))};
     const urlResolver: compiler.UrlResolver = compiler.createOfflineCompileUrlResolver();

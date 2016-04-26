@@ -10,22 +10,19 @@ export class NodeReflectorHost implements StaticReflectorHost {
   constructor(private program: ts.Program, private metadataCollector: MetadataCollector,
               private compilerHost: ts.CompilerHost) {}
 
-  getMetadataFor(moduleId: string): ModuleMetadata {
-    let filePath: string;
-
-    const resolved = this.compilerHost.resolveModuleNames([moduleId], '');
-    if (resolved && resolved.length) {
-      filePath = resolved[0].resolvedFileName;
-      if (DTS.test(filePath)) {
-        const metadataPath = filePath.replace(DTS, '.metadata.json');
-        if (fs.existsSync(metadataPath)) {
-          return this.readMetadata(metadataPath);
-        }
-      }
+  resolveModule(moduleId: string, containingFile: string) {
+    if (!containingFile || !containingFile.length) {
+      containingFile = 'index.ts';
     }
+    return this.compilerHost.resolveModuleNames([moduleId], containingFile)[0].resolvedFileName;
+  }
 
-    if (!filePath) {
-      throw new Error(`Could not locate any file containing module ${moduleId}`);
+  getMetadataFor(filePath: string): ModuleMetadata {
+    if (DTS.test(filePath)) {
+      const metadataPath = filePath.replace(DTS, '.metadata.json');
+      if (fs.existsSync(metadataPath)) {
+        return this.readMetadata(metadataPath);
+      }
     }
 
     let sf = this.program.getSourceFile(filePath);

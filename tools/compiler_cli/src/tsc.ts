@@ -2,7 +2,8 @@ import * as ts from 'typescript';
 // Don't import from fs in general, that's the CompilerHost's job
 import {lstatSync} from 'fs';
 import * as path from 'path';
-import {AngularCompilerOptions, CodeGeneratorHost} from './codegen';
+import {AngularCompilerOptions} from './codegen';
+import {CodeGeneratorHost} from './compiler_host';
 
 /**
  * Our interface to the TypeScript standard compiler.
