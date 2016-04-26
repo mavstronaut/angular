@@ -36,7 +36,7 @@ export interface StaticReflectorHost {
    * @param moduleId is a string identifier for a module as an absolute path.
    * @returns the metadata for the given module.
    */
-  getMetadataFor(moduleId: string): {[key: string]: any};
+  getMetadataFor(modulePath: string): {[key: string]: any};
 
   /**
    * Resolve a module from an import statement form to an absolute path.
@@ -44,6 +44,8 @@ export interface StaticReflectorHost {
    * @param containingFile for relative imports, the path of the file containing the import
    */
   resolveModule(moduleName: string, containingFile?: string): string;
+
+  findDeclaration(modulePath: string, symbolName: string): {declarationPath: string, declaredName: string};
 }
 
 /**
@@ -275,7 +277,8 @@ export class StaticReflector implements ReflectorReader {
       let target = expression['expression'];
       if (isMetadataSymbolicReferenceExpression(target)) {
         let moduleId = this.host.resolveModule(target['module'], moduleContext);
-        return this.getStaticType(moduleId, target['name']);
+        const {declarationPath, declaredName} = this.host.findDeclaration(moduleId, target['name']);
+        return this.getStaticType(declarationPath, declaredName);
       }
     }
     return null;
@@ -420,13 +423,14 @@ export class StaticReflector implements ReflectorReader {
             case "reference":
               let referenceModuleName =
                   _this.host.resolveModule(expression['module'], moduleContext);
-              let referenceModule = _this.getModuleMetadata(referenceModuleName);
-              let referenceValue = referenceModule['metadata'][expression['name']];
+              const {declarationPath, declaredName} = _this.host.findDeclaration(referenceModuleName, expression['name']);
+              let moduleMetadata = _this.getModuleMetadata(declarationPath);
+              let referenceValue = moduleMetadata['metadata'][declaredName];
               if (isClassMetadata(referenceValue)) {
                 // Convert to a pseudo type
-                return _this.getStaticType(referenceModuleName, expression['name']);
+                return _this.getStaticType(declarationPath, declaredName);
               }
-              return _this.simplify(referenceModuleName, referenceValue);
+              return _this.simplify(declarationPath, declaredName);
             case "call":
               return null;
           }

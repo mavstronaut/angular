@@ -148,7 +148,7 @@ export class RuntimeMetadataResolver {
       if (/No Directive annotation/.test(e.message)) {
         return null;
       }
-      console.log(someType, e);
+      console.error("Couldn't produce metadata for type", someType, e);
       throw e;
     }
   }
@@ -196,7 +196,6 @@ export class RuntimeMetadataResolver {
             `Unexpected directive value '${stringify(directives[i])}' on the View of component '${stringify(component)}'`);
       }
     }
-console.log(`directives.map:`, directives);
     return directives.map(type => this.getDirectiveMetadata(type));
   }
 

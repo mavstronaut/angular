@@ -17,6 +17,18 @@ export class NodeReflectorHost implements StaticReflectorHost {
     return this.compilerHost.resolveModuleNames([moduleId], containingFile)[0].resolvedFileName;
   }
 
+  findDeclaration(moduleName: string, symbolName: string): {declarationPath: string, declaredName: string} {
+    const tc = this.program.getTypeChecker();
+    const sf = this.program.getSourceFile(moduleName);
+
+    let symbol =  tc.getExportsOfModule((<any>sf).symbol).find(m => m.name === symbolName);
+    while (symbol && symbol.flags & ts.SymbolFlags.Alias) {// This is an alias, follow what it aliases
+      symbol = tc.getAliasedSymbol(symbol);
+    }
+    const declaration = symbol.getDeclarations()[0];
+    return {declarationPath: declaration.getSourceFile().fileName, declaredName: symbol.getName()};
+  }
+
   getMetadataFor(filePath: string): ModuleMetadata {
     if (DTS.test(filePath)) {
       const metadataPath = filePath.replace(DTS, '.metadata.json');
@@ -29,9 +41,7 @@ export class NodeReflectorHost implements StaticReflectorHost {
     if (!sf) {
       throw new Error(`Source file ${filePath} not present in program.`);
     }
-    const metadata =  this.metadataCollector.getMetadata(sf, this.program.getTypeChecker());
-    console.log(JSON.stringify(metadata));
-    return metadata;
+    return this.metadataCollector.getMetadata(sf, this.program.getTypeChecker());
   }
 
   readMetadata(filePath: string) {

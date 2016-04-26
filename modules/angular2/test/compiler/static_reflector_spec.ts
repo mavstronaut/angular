@@ -324,6 +324,10 @@ export function main() {
 }
 
 class MockReflectorHost implements StaticReflectorHost {
+  // In tests, assume that symbols are not re-exported
+  findDeclaration(modulePath: string, symbolName: string): {declarationPath: string, declaredName: string} {
+    return {declarationPath: modulePath, declaredName: symbolName};
+  }
   resolveModule(moduleName: string, containingFile?: string): string {
     function splitPath(path: string): string[] { return path.split(/\/|\\/g); }
 
