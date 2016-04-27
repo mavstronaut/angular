@@ -31,8 +31,8 @@ import {NG_VALIDATORS, NG_ASYNC_VALIDATORS} from '../validators';
 import {ValidatorFn, AsyncValidatorFn} from './validators';
 
 
-export const controlNameBinding =
-    new Provider(NgControl, {useExisting:  NgControlName});
+const controlNameBinding =
+    CONST_EXPR(new Provider(NgControl, {useExisting: forwardRef(() => NgControlName)}));
 
 /**
  * Creates and binds a control with a specified name to a DOM element.

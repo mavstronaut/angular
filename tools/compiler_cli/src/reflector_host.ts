@@ -30,6 +30,9 @@ export class NodeReflectorHost implements StaticReflectorHost {
   }
 
   getMetadataFor(filePath: string): ModuleMetadata {
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`No such file '${filePath}'`);
+    }
     if (DTS.test(filePath)) {
       const metadataPath = filePath.replace(DTS, '.metadata.json');
       if (fs.existsSync(metadataPath)) {

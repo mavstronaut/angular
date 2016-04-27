@@ -10,6 +10,7 @@ import {MetadataCollector} from 'ts-metadata-collector';
 import {NodeReflectorHost} from './reflector_host';
 import {wrapCompilerHost, CodeGeneratorHost} from './compiler_host';
 import {RouterLinkTransform} from "angular2/src/router/directives/router_link_transform";
+import {Parse5DomAdapter} from 'angular2/platform/server';
 
 const SOURCE_EXTENSION = /\.[jt]s$/;
 const PREAMBLE = `/**
@@ -73,6 +74,7 @@ export class CodeGenerator {
   }
 
   codegen() {
+    Parse5DomAdapter.makeCurrent();
     const generateOneFile = (absSourcePath: string) =>
         Promise.all(this.readComponents(absSourcePath))
             .then((metadatas: compiler.CompileDirectiveMetadata[]) => {
@@ -91,7 +93,7 @@ export class CodeGenerator {
               this.host.writeFile(emitPath, PREAMBLE + generated.source, false, () => {},
                                   [sourceFile]);
             })
-            .catch((e) => { console.error('ERROR', e, e.stack); });
+            .catch((e) => { console.error(e.stack); });
 
     return Promise.all(this.program.getRootFileNames().map(generateOneFile));
   }

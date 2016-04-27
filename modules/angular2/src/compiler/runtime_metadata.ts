@@ -99,14 +99,12 @@ export class RuntimeMetadataResolver {
         });
         changeDetectionStrategy = cmpMeta.changeDetection;
         if (isPresent(dirMeta.viewProviders)) {
-          console.log("directive", directiveType);
           viewProviders = this.getProvidersMetadata(dirMeta.viewProviders);
         }
       }
 
       var providers = [];
       if (isPresent(dirMeta.providers)) {
-        console.log("directive", directiveType);
         providers = this.getProvidersMetadata(dirMeta.providers);
       }
       var queries = [];
