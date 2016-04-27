@@ -14,7 +14,12 @@ export class NodeReflectorHost implements StaticReflectorHost {
     if (!containingFile || !containingFile.length) {
       containingFile = 'index.ts';
     }
-    return this.compilerHost.resolveModuleNames([moduleId], containingFile)[0].resolvedFileName;
+    try {
+      return this.compilerHost.resolveModuleNames([moduleId], containingFile)[0].resolvedFileName;
+    } catch (e) {
+      console.error(`can't resolve module ${moduleId} from ${containingFile}`, e);
+      throw e;
+    }
   }
 
   findDeclaration(moduleName: string, symbolName: string): {declarationPath: string, declaredName: string} {
@@ -22,6 +27,9 @@ export class NodeReflectorHost implements StaticReflectorHost {
     const sf = this.program.getSourceFile(moduleName);
 
     let symbol =  tc.getExportsOfModule((<any>sf).symbol).find(m => m.name === symbolName);
+    if (!symbol) {
+      throw new Error(`can't find symbol ${symbolName} exported from module ${moduleName}`);
+    }
     while (symbol && symbol.flags & ts.SymbolFlags.Alias) {// This is an alias, follow what it aliases
       symbol = tc.getAliasedSymbol(symbol);
     }
@@ -44,12 +52,14 @@ export class NodeReflectorHost implements StaticReflectorHost {
     if (!sf) {
       throw new Error(`Source file ${filePath} not present in program.`);
     }
-    return this.metadataCollector.getMetadata(sf, this.program.getTypeChecker());
+    const metadata = this.metadataCollector.getMetadata(sf, this.program.getTypeChecker());
+    return metadata;
   }
 
   readMetadata(filePath: string) {
     try {
-      return JSON.parse(fs.readFileSync(filePath, {encoding: 'utf-8'}));
+      const result = JSON.parse(fs.readFileSync(filePath, {encoding: 'utf-8'}));
+      return result;
     } catch (e) {
       console.error(`Failed to read JSON file ${filePath}`);
       throw e;

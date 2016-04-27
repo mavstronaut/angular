@@ -26,6 +26,7 @@ import {
 } from './reflective_exceptions';
 import {resolveForwardRef} from './forward_ref';
 import {Provider, ProviderBuilder, provide} from './provider';
+import {ReflectorReader} from "../reflection/reflector_reader";
 
 /**
  * `Dependency` is used by the framework to extend DI.
@@ -115,13 +116,13 @@ export function resolveReflectiveFactory(provider: Provider): ResolvedReflective
   if (isPresent(provider.useClass)) {
     var useClass = resolveForwardRef(provider.useClass);
     factoryFn = reflector.factory(useClass);
-    resolvedDeps = _dependenciesFor(useClass);
+    resolvedDeps = _dependenciesFor(reflector, useClass);
   } else if (isPresent(provider.useExisting)) {
     factoryFn = (aliasInstance) => aliasInstance;
     resolvedDeps = [ReflectiveDependency.fromKey(ReflectiveKey.get(provider.useExisting))];
   } else if (isPresent(provider.useFactory)) {
     factoryFn = provider.useFactory;
-    resolvedDeps = constructDependencies(provider.useFactory, provider.dependencies);
+    resolvedDeps = constructDependencies(reflector, provider.useFactory, provider.dependencies);
   } else {
     factoryFn = () => provider.useValue;
     resolvedDeps = _EMPTY_LIST;
@@ -211,19 +212,20 @@ function _normalizeProviders(providers: Array<Type | Provider | ProviderBuilder 
   return res;
 }
 
-export function constructDependencies(typeOrFunc: any,
+export function constructDependencies(reflector: ReflectorReader, typeOrFunc: any,
                                       dependencies: any[]): ReflectiveDependency[] {
   if (isBlank(dependencies)) {
-    return _dependenciesFor(typeOrFunc);
+    return _dependenciesFor(reflector, typeOrFunc);
   } else {
     var params: any[][] = dependencies.map(t => [t]);
     return dependencies.map(t => _extractToken(typeOrFunc, t, params));
   }
 }
 
-function _dependenciesFor(typeOrFunc: any): ReflectiveDependency[] {
+function _dependenciesFor(reflector: ReflectorReader, typeOrFunc: any): ReflectiveDependency[] {
   var params = reflector.parameters(typeOrFunc);
   if (isBlank(params)) return [];
+
   if (params.some(isBlank)) {
     throw new NoAnnotationError(typeOrFunc, params);
   }

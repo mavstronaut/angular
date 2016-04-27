@@ -51,7 +51,6 @@ export class ViewResolver {
         compMeta = m;
       }
     });
-
     if (isPresent(compMeta)) {
       if (isBlank(compMeta.template) && isBlank(compMeta.templateUrl) && isBlank(viewMeta)) {
         throw new BaseException(

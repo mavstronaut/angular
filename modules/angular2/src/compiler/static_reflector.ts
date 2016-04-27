@@ -22,6 +22,11 @@ import {
   QueryMetadata,
 } from 'angular2/src/core/metadata';
 import {ReflectorReader} from 'angular2/src/core/reflection/reflector_reader';
+import {Provider} from 'angular2/src/core/di/provider';
+import {
+  HostMetadata, OptionalMetadata, InjectableMetadata,
+  SelfMetadata, SkipSelfMetadata, InjectMetadata
+} from "angular2/src/core/di/metadata";
 
 /**
  * The host of the static resolver is expected to be able to provide module metadata in the form of
@@ -127,7 +132,20 @@ export class StaticReflector implements ReflectorReader {
           let ctorData = members['__ctor__'];
           if (isPresent(ctorData)) {
             let ctor = (<any[]>ctorData).find(a => a['__symbolic'] === 'constructor');
-            parameters = this.simplify(type.moduleId, ctor['parameters']);
+            let parameterTypes = ctor['parameters'];
+            let parameterDecorators = this.simplify(type.moduleId, ctor['parameterDecorators']);
+
+            parameters = parameterTypes.map((paramType, index) => {
+              let nestedResult = [];
+              const decorators = parameterDecorators ? parameterDecorators[index] : null;
+              if (isPresent(paramType)) {
+                nestedResult.push(this.makeRef(paramType, type.moduleId));
+              }
+              if (isPresent(decorators)) {
+                nestedResult.push(...decorators);
+              }
+              return nestedResult;
+            });
           }
         }
       }
@@ -333,9 +351,21 @@ export class StaticReflector implements ReflectorReader {
     return result;
   }
 
+  // todo(tbosch): think about variable name reassignments
+  private makeRef(expr, moduleContext) {
+  if (isPrimitive(expr)) {
+    return expr;
+  } else {
+    const {declarationPath, declaredName} = this.resolveReference(expr, moduleContext);
+    return this.getStaticType(declarationPath, declaredName);
+  }
+}
+
   /** @internal */
   public simplify(moduleContext: string, value: any): any {
     let _this = this;
+
+
 
     function simplify(expression: any): any {
       if (isPrimitive(expression)) {
@@ -397,6 +427,18 @@ export class StaticReflector implements ReflectorReader {
                   return left % right;
               }
               return null;
+            case "new":
+              const ctor = simplify(expression['expression']);
+              const args = expression['arguments'];
+
+              if (//_this.host.resolveModule(ctor.moduleId, moduleContext) === 'angular2/src/core/di/provider' &&
+                ctor.name === 'Provider') {
+                const providerOptionRefs = {};
+                Object.keys(args[1]).map(key => providerOptionRefs[key] = _this.makeRef(args[1][key], moduleContext));
+                return new Provider(_this.makeRef(args[0], moduleContext), providerOptionRefs);
+              } else {
+                throw new Error(`Unknown constructor call in metadata ${_this.host.resolveModule(ctor.moduleId, moduleContext)} ${JSON.stringify(ctor)}`);
+              }
             case "pre":
               let operand = simplify(expression['operand']);
               switch (expression['operator']) {
@@ -421,18 +463,35 @@ export class StaticReflector implements ReflectorReader {
               if (isPresent(selectTarget) && isPrimitive(member)) return selectTarget[member];
               return null;
             case "reference":
-              let referenceModuleName =
-                  _this.host.resolveModule(expression['module'], moduleContext);
-              const {declarationPath, declaredName} = _this.host.findDeclaration(referenceModuleName, expression['name']);
+              const {declarationPath, declaredName} = _this.resolveReference(expression, moduleContext);
               let moduleMetadata = _this.getModuleMetadata(declarationPath);
               let referenceValue = moduleMetadata['metadata'][declaredName];
               if (isClassMetadata(referenceValue)) {
                 // Convert to a pseudo type
                 return _this.getStaticType(declarationPath, declaredName);
               }
-              return _this.simplify(declarationPath, declaredName);
+              return _this.simplify(declarationPath, referenceValue);
             case "call":
-              return null;
+              const callExpr = expression['expression'];
+              // check module FIXME
+              switch (callExpr['name']) {
+                case 'Host':
+                  return new HostMetadata();
+                case 'Optional':
+                  return new OptionalMetadata();
+                case 'Injectable':
+                  return new InjectableMetadata();
+                case 'Self':
+                  return new SelfMetadata();
+                case 'SkipSelf':
+                  return new SkipSelfMetadata();
+                case 'Attribute':
+                  return new AttributeMetadata(simplify(expression['arguments'][0]));
+                case 'Inject':
+                  return new InjectMetadata(_this.makeRef(expression['arguments'][0], moduleContext));
+                default:
+                  throw new Error("should not find a call to simplify " + JSON.stringify(expression));
+              }
           }
           return null;
         }
@@ -444,6 +503,19 @@ export class StaticReflector implements ReflectorReader {
     }
 
     return simplify(value);
+  }
+
+  private resolveReference(expression:any, moduleContext:string) {
+    if (!expression['name']) {
+      throw new Error("cannot resolve a reference without a name property" + expression);
+    }
+    let referenceModuleName;
+    if (expression['module']) {
+      referenceModuleName = this.host.resolveModule(expression['module'], moduleContext);
+      return this.host.findDeclaration(referenceModuleName, expression['name']);
+    } else {
+      return {declarationPath: moduleContext, declaredName: expression['name']};
+    }
   }
 
   /**

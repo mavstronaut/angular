@@ -1,6 +1,7 @@
 import {
   describe,
   it,
+  iit,
   expect,
 } from 'angular2/testing_internal';
 import {ListWrapper} from 'angular2/src/facade/collection';
@@ -44,7 +45,7 @@ export function main() {
           .toEqual([ViewContainerRef, TemplateRef, IterableDiffers, ChangeDetectorRef]);
     });
 
-    it('should get annotations for HeroDetailComponent', () => {
+    iit('should get annotations for HeroDetailComponent', () => {
       let host = new MockReflectorHost();
       let reflector = new StaticReflector(host);
 
@@ -54,6 +55,7 @@ export function main() {
       expect(annotations.length).toEqual(1);
       let annotation = annotations[0];
       expect(annotation.selector).toEqual('my-hero-detail');
+      expect(annotation.directives).toEqual([[ reflector.getStaticType(host.resolveModule('angular2/src/common/directives/ng_for'), 'NgFor') ]]);
     });
 
     it('should get and empty annotation list for an unknown class', () => {
@@ -367,6 +369,9 @@ class MockReflectorHost implements StaticReflectorHost {
 
   getMetadataFor(moduleId: string): any {
     return {
+      '/tmp/angular2/src/common/forms/directives.d.ts': {"__symbolic":"module",
+        "metadata":{"FORM_DIRECTIVES":[{
+          "__symbolic":"reference","name":"NgFor","module":"angular2/src/common/directives/ng_for"}]}},
       '/tmp/angular2/src/common/directives/ng_for.d.ts':
           {
             "__symbolic": "module",
@@ -457,7 +462,8 @@ class MockReflectorHost implements StaticReflectorHost {
                                     "arguments": [
                                       {
                                         "selector": "my-hero-detail",
-                                        "template": "\n  <div *ngIf=\"hero\">\n    <h2>{{hero.name}} details!</h2>\n    <div><label>id: </label>{{hero.id}}</div>\n    <div>\n      <label>name: </label>\n      <input [(ngModel)]=\"hero.name\" placeholder=\"name\"/>\n    </div>\n  </div>\n"
+                                        "template": "\n  <div *ngIf=\"hero\">\n    <h2>{{hero.name}} details!</h2>\n    <div><label>id: </label>{{hero.id}}</div>\n    <div>\n      <label>name: </label>\n      <input [(ngModel)]=\"hero.name\" placeholder=\"name\"/>\n    </div>\n  </div>\n",
+                                        "directives":[{"__symbolic":"reference","name":"FORM_DIRECTIVES","module":"angular2/src/common/forms/directives"}]
                                       }
                                     ]
                                   }

@@ -6,6 +6,7 @@ import {
   isArray,
   stringify,
   isString,
+  isStringMap,
   RegExpWrapper,
   StringWrapper
 } from 'angular2/src/facade/lang';
@@ -36,7 +37,7 @@ import {
   OptionalMetadata,
   SelfMetadata,
   HostMetadata,
-  SkipSelfMetadata
+  SkipSelfMetadata, InjectMetadata
 } from 'angular2/src/core/di/metadata';
 import {AttributeMetadata} from 'angular2/src/core/metadata/di';
 import {ReflectorReader} from 'angular2/src/core/reflection/reflector_reader';
@@ -79,7 +80,7 @@ export class RuntimeMetadataResolver {
     var meta = this._directiveCache.get(directiveType);
     if (isBlank(meta)) {
       var dirMeta = this._directiveResolver.resolve(directiveType);
-      var moduleUrl = null;
+      var moduleUrl = this._reflector.importUri(directiveType);
       var templateMeta = null;
       var changeDetectionStrategy = null;
       var viewProviders = [];
@@ -152,6 +153,7 @@ export class RuntimeMetadataResolver {
   }
 
   getTypeMetadata(type: Type, moduleUrl: string): cpl.CompileTypeMetadata {
+    if (!moduleUrl) throw new Error();
     return new cpl.CompileTypeMetadata({
       name: this.sanitizeTokenName(type),
       moduleUrl: moduleUrl,
@@ -190,6 +192,7 @@ export class RuntimeMetadataResolver {
     var directives = flattenDirectives(view, this._platformDirectives);
     for (var i = 0; i < directives.length; i++) {
       if (!isValidType(directives[i])) {
+        console.log('View, ', view);
         throw new BaseException(
             `Unexpected directive value '${stringify(directives[i])}' on the View of component '${stringify(component)}'`);
       }
@@ -211,41 +214,56 @@ export class RuntimeMetadataResolver {
 
   getDependenciesMetadata(typeOrFunc: Type | Function,
                           dependencies: any[]): cpl.CompileDiDependencyMetadata[] {
-    var deps: ReflectiveDependency[];
-    try {
-      deps = constructDependencies(typeOrFunc, dependencies);
-    } catch (e) {
-      if (e instanceof NoAnnotationError) {
-        deps = [];
-      } else {
-        throw e;
-      }
-    }
-    return deps.map((dep) => {
-      var compileToken;
-      var p = <AttributeMetadata>dep.properties.find(p => p instanceof AttributeMetadata);
-      var isAttribute = false;
-      if (isPresent(p)) {
-        compileToken = this.getTokenMetadata(p.attributeName);
-        isAttribute = true;
-      } else {
-        compileToken = this.getTokenMetadata(dep.key.token);
-      }
-      var compileQuery = null;
-      var q = <dimd.QueryMetadata>dep.properties.find(p => p instanceof dimd.QueryMetadata);
-      if (isPresent(q)) {
-        compileQuery = this.getQueryMetadata(q, null);
-      }
+    // TODO: use dependencies
+    var params = this._reflector.parameters(typeOrFunc);
+    if (isBlank(params)) throw new Error('blank' + typeOrFunc);
+    return params.map((param) => {
+      let isAttribute = false;
+      let isHost = false;
+      let isSelf = false;
+      let isSkipSelf = false;
+      let isOptional = false;
+      let query: dimd.QueryMetadata = null;
+      let viewQuery: dimd.ViewQueryMetadata = null;
+      var token = null;
+      param.forEach((paramEntry) => {
+        if (paramEntry instanceof HostMetadata) {
+          isHost = true;
+        }
+        else if (paramEntry instanceof SelfMetadata) {
+          isSelf = true;
+        }
+        else if (paramEntry instanceof SkipSelfMetadata) {
+          isSkipSelf = true;
+        }
+        else if (paramEntry instanceof OptionalMetadata) {
+          isOptional = true;
+        }
+        else if (paramEntry instanceof AttributeMetadata) {
+          isAttribute = true;
+          token = paramEntry.attributeName;
+        }
+        // todo query
+        // fixme viewQuery
+        else if (paramEntry instanceof InjectMetadata) {
+          token = paramEntry.token;
+        }
+        else if (isValidType(paramEntry) && isBlank(token)) {
+          token = paramEntry;
+        }
+      });
+      if (!token) throw new Error('no token found in any parameter ' + JSON.stringify(typeOrFunc));
       return new cpl.CompileDiDependencyMetadata({
         isAttribute: isAttribute,
-        isHost: dep.upperBoundVisibility instanceof HostMetadata,
-        isSelf: dep.upperBoundVisibility instanceof SelfMetadata,
-        isSkipSelf: dep.lowerBoundVisibility instanceof SkipSelfMetadata,
-        isOptional: dep.optional,
-        query: isPresent(q) && !q.isViewQuery ? compileQuery : null,
-        viewQuery: isPresent(q) && q.isViewQuery ? compileQuery : null,
-        token: compileToken
+        isHost: isHost,
+        isSelf: isSelf,
+        isSkipSelf: isSkipSelf,
+        isOptional: isOptional,
+        query: isPresent(query) ? this.getQueryMetadata(query, null) : null,
+        viewQuery: isPresent(viewQuery) ? this.getQueryMetadata(viewQuery, null) : null,
+        token: this.getTokenMetadata(token)
       });
+
     });
   }
 
@@ -257,7 +275,7 @@ export class RuntimeMetadataResolver {
     } else {
       compileToken = new cpl.CompileTokenMetadata({
         identifier: new cpl.CompileIdentifierMetadata(
-            {runtime: token, name: this.sanitizeTokenName(token)})
+            {runtime: token, name: this.sanitizeTokenName(token), moduleUrl: this._reflector.importUri(token)})
       });
     }
     return compileToken;
@@ -265,15 +283,15 @@ export class RuntimeMetadataResolver {
 
   getProvidersMetadata(providers: any[]):
       Array<cpl.CompileProviderMetadata | cpl.CompileTypeMetadata | any[]> {
-    console.log("providersMetadata", providers);
     return providers.map((provider) => {
+      if (!provider) throw new Error();
       provider = resolveForwardRef(provider);
       if (isArray(provider)) {
         return this.getProvidersMetadata(provider);
       } else if (provider instanceof Provider) {
         return this.getProviderMetadata(provider);
       } else {
-        return this.getTypeMetadata(provider, null);
+        return this.getTypeMetadata(provider, this._reflector.importUri(provider));
       }
     });
   }
@@ -287,12 +305,12 @@ export class RuntimeMetadataResolver {
     }
     return new cpl.CompileProviderMetadata({
       token: this.getTokenMetadata(provider.token),
-      useClass: isPresent(provider.useClass) ? this.getTypeMetadata(provider.useClass, null) : null,
+      useClass: isPresent(provider.useClass) ? this.getTypeMetadata(provider.useClass, this._reflector.importUri(provider.useClass)) : null,
       useValue: isPresent(provider.useValue) ?
                     new cpl.CompileIdentifierMetadata({runtime: provider.useValue}) :
                     null,
       useFactory: isPresent(provider.useFactory) ?
-                      this.getFactoryMetadata(provider.useFactory, null) :
+                      this.getFactoryMetadata(provider.useFactory, this._reflector.importUri(provider.useFactory)) :
                       null,
       useExisting: isPresent(provider.useExisting) ? this.getTokenMetadata(provider.useExisting) :
                                                      null,
@@ -362,9 +380,9 @@ function flattenArray(tree: any[], out: Array<Type | any[]>): void {
   }
 }
 
-function isValidType(value: Type): boolean {
-  // TODO: also check for static type
-  return isPresent(value); // && (value instanceof Type);
+function isValidType(value: Type|{[key: string]: string}): boolean {
+  const isStaticType = isStringMap(value) && isPresent(value['name']) && isPresent(value['moduleId']);
+  return isStaticType || (value instanceof Type);
 }
 
 function calcModuleUrl(reflector: ReflectorReader, type: Type,
