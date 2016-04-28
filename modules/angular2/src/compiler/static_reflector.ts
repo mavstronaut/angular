@@ -132,14 +132,14 @@ export class StaticReflector implements ReflectorReader {
           let ctorData = members['__ctor__'];
           if (isPresent(ctorData)) {
             let ctor = (<any[]>ctorData).find(a => a['__symbolic'] === 'constructor');
-            let parameterTypes = ctor['parameters'];
-            let parameterDecorators = this.simplify(type.moduleId, ctor['parameterDecorators']);
+            let parameterTypes = this.simplify(type.moduleId, ctor['parameters'], false);
+            let parameterDecorators = this.simplify(type.moduleId, ctor['parameterDecorators'], false);
 
             parameters = parameterTypes.map((paramType, index) => {
               let nestedResult = [];
               const decorators = parameterDecorators ? parameterDecorators[index] : null;
               if (isPresent(paramType)) {
-                nestedResult.push(this.makeRef(paramType, type.moduleId));
+                nestedResult.push(paramType);
               }
               if (isPresent(decorators)) {
                 nestedResult.push(...decorators);
@@ -157,10 +157,47 @@ export class StaticReflector implements ReflectorReader {
     return parameters;
   }
 
+  // TODO: move into simplify?!
   private conversionMap = new Map<StaticType, (moduleContext: string, expression: any) => any>();
   private initializeConversionMap(): any {
     let core_metadata = this.host.resolveModule('angular2/src/core/metadata');
+    let di_metadata = this.host.resolveModule('angular2/src/core/di/metadata');
     let conversionMap = this.conversionMap;
+
+    // FIXME: conversionMap.set(this.getStaticType(core_metadata, 'Host'), );
+    const callExpr = expression['expression'];
+    const varArgs = _this.simplify(expression['arguments'], moduleContext, false);
+    // check module FIXME
+    switch (callExpr['name']) {
+      case 'Host':
+        return new HostMetadata(...varArgs);
+      case 'Optional':
+        return new OptionalMetadata(...varArgs);
+      case 'Injectable':
+        return new InjectableMetadata(...varArgs);
+      case 'Self':
+        return new SelfMetadata(...varArgs);
+      case 'SkipSelf':
+        return new SkipSelfMetadata(...varArgs);
+      case 'Attribute':
+        return new AttributeMetadata(...varArgs);
+      case 'Inject':
+        return new InjectMetadata(...varArgs);
+      case 'Query':
+        return new QueryMetadata(...varArgs);
+      case 'ViewQuery':
+        return new ViewQueryMetadata(...varArgs);
+      case 'ContentChild':
+        return new ContentChildMetadata(...varArgs);
+      case 'ContentChildren':
+        return new ContentChildrenMetadata(...varArgs);
+      case 'ViewChild':
+        return new ViewChildMetadata(...varArgs);
+      case 'ViewChildren':
+        return new ViewChildrenMetadata(...varArgs);
+      default:
+        throw new Error("should not find a call to simplify " + JSON.stringify(expression));
+    }
     conversionMap.set(this.getStaticType(core_metadata, 'Directive'),
                       (moduleContext, expression) => {
                         let p0 = this.getDecoratorParameter(moduleContext, expression, 0);
@@ -306,7 +343,7 @@ export class StaticReflector implements ReflectorReader {
                                 index: number): any {
     if (isMetadataSymbolicCallExpression(expression) && isPresent(expression['arguments']) &&
         (<any[]>expression['arguments']).length <= index + 1) {
-      return this.simplify(moduleContext, (<any[]>expression['arguments'])[index]);
+      return this.simplify(moduleContext, (<any[]>expression['arguments'])[index], true);
     }
     return null;
   }
@@ -351,21 +388,9 @@ export class StaticReflector implements ReflectorReader {
     return result;
   }
 
-  // todo(tbosch): think about variable name reassignments
-  private makeRef(expr, moduleContext) {
-  if (isPrimitive(expr)) {
-    return expr;
-  } else {
-    const {declarationPath, declaredName} = this.resolveReference(expr, moduleContext);
-    return this.getStaticType(declarationPath, declaredName);
-  }
-}
-
   /** @internal */
-  public simplify(moduleContext: string, value: any): any {
+  public simplify(moduleContext: string, value: any, crossModules: boolean): any {
     let _this = this;
-
-
 
     function simplify(expression: any): any {
       if (isPrimitive(expression)) {
@@ -381,6 +406,8 @@ export class StaticReflector implements ReflectorReader {
       if (isPresent(expression)) {
         if (isPresent(expression['__symbolic'])) {
           switch (expression['__symbolic']) {
+            case "class":
+              return _this.getStaticType(moduleContext, expression['name']);
             case "binop":
               let left = simplify(expression['left']);
               let right = simplify(expression['right']);
@@ -431,11 +458,11 @@ export class StaticReflector implements ReflectorReader {
               const ctor = simplify(expression['expression']);
               const args = expression['arguments'];
 
-              if (//_this.host.resolveModule(ctor.moduleId, moduleContext) === 'angular2/src/core/di/provider' &&
+              if (
+                // FIXME: _this.host.resolveModule(ctor.moduleId, moduleContext) === 'angular2/src/core/di/provider' &&
                 ctor.name === 'Provider') {
-                const providerOptionRefs = {};
-                Object.keys(args[1]).map(key => providerOptionRefs[key] = _this.makeRef(args[1][key], moduleContext));
-                return new Provider(_this.makeRef(args[0], moduleContext), providerOptionRefs);
+                const varArgs = _this.simplify(moduleContext, args, false);
+                return new Provider(...varArgs);
               } else {
                 throw new Error(`Unknown constructor call in metadata ${_this.host.resolveModule(ctor.moduleId, moduleContext)} ${JSON.stringify(ctor)}`);
               }
@@ -463,35 +490,27 @@ export class StaticReflector implements ReflectorReader {
               if (isPresent(selectTarget) && isPrimitive(member)) return selectTarget[member];
               return null;
             case "reference":
-              const {declarationPath, declaredName} = _this.resolveReference(expression, moduleContext);
-              let moduleMetadata = _this.getModuleMetadata(declarationPath);
-              let referenceValue = moduleMetadata['metadata'][declaredName];
-              if (isClassMetadata(referenceValue)) {
-                // Convert to a pseudo type
-                return _this.getStaticType(declarationPath, declaredName);
+              if (!expression['name']) {
+                throw new Error("cannot resolve a reference without a name property" + expression);
               }
-              return _this.simplify(declarationPath, referenceValue);
+              let referenceModuleName;
+              if (expression['module']) {
+                referenceModuleName = this.host.resolveModule(expression['module'], moduleContext);
+                const {declarationPath, declaredName} = this.host.findDeclaration(referenceModuleName, expression['name']);
+                if (crossModules) {
+                  let moduleMetadata = _this.getModuleMetadata(declarationPath);
+                  let declarationValue = moduleMetadata['metadata'][declaredName];
+                  return _this.simplify(declarationPath, declarationValue, crossModules);
+                } else {
+                  return _this.getStaticType(declarationPath, declaredName);
+                }
+              } else {
+                let moduleMetadata = _this.getModuleMetadata(moduleContext);
+                let referenceValue = moduleMetadata['metadata'][expression['name']];
+                return simplify(referenceValue);
+              }
             case "call":
-              const callExpr = expression['expression'];
-              // check module FIXME
-              switch (callExpr['name']) {
-                case 'Host':
-                  return new HostMetadata();
-                case 'Optional':
-                  return new OptionalMetadata();
-                case 'Injectable':
-                  return new InjectableMetadata();
-                case 'Self':
-                  return new SelfMetadata();
-                case 'SkipSelf':
-                  return new SkipSelfMetadata();
-                case 'Attribute':
-                  return new AttributeMetadata(simplify(expression['arguments'][0]));
-                case 'Inject':
-                  return new InjectMetadata(_this.makeRef(expression['arguments'][0], moduleContext));
-                default:
-                  throw new Error("should not find a call to simplify " + JSON.stringify(expression));
-              }
+              return _this.convertKnownDecorator(moduleContext, expression);
           }
           return null;
         }
@@ -550,8 +569,4 @@ function isMetadataSymbolicCallExpression(expression: any): boolean {
 function isMetadataSymbolicReferenceExpression(expression: any): boolean {
   return !isPrimitive(expression) && !isArray(expression) &&
          expression['__symbolic'] == 'reference';
-}
-
-function isClassMetadata(expression: any): boolean {
-  return !isPrimitive(expression) && !isArray(expression) && expression['__symbolic'] == 'class';
 }
