@@ -53,13 +53,14 @@ describe("template codegen output", () => {
                                                             browserPlatform().injector);
     var comp = BasicNgFactory.create(appInjector);
     var debugElement = <DebugElement>getDebugNode(comp.location.nativeElement);
-    expect(debugElement.children.length).toBe(2);
 
     // test NgFor
     comp.instance.ctxArr = [1, 2];
     comp.changeDetectorRef.detectChanges();
-    expect(debugElement.children.length).toBe(4);
-    expect(debugElement.children[2].attributes['value']).toBe('1');
-    expect(debugElement.children[3].attributes['value']).toBe('2');
+
+const children = debugElement.nativeElement.children;
+console.log(children[children.length - 1]);
+expect(children.some(n => {console.log(n.type); return n.type === 'li'})).toBeTruthy();
+
   });
 });
