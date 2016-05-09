@@ -47,7 +47,8 @@ export function main(project: string, basePath?: string): Promise<any> {
       tsc.typeCheck(host, program);
 
       // Emit *.js with Decorators lowered to Annotations, and also *.js.map
-      const tsicklePreProcessor = new TsickleHost(host, parsed.options);
+      const tsicklePreProcessor = new TsickleHost(host, parsed.options, ngOptions);
+      tsicklePreProcessor.program = program;
       tsc.emit(tsicklePreProcessor, program);
 
       if (!ngOptions.skipMetadataEmit) {

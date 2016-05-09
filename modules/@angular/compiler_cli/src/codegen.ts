@@ -55,6 +55,9 @@ export interface AngularCompilerOptions {
 
   // Print extra information while running the compiler
   trace: boolean;
+
+  // Translate outputs to ES6 that is valid input to closure compiler
+  googleClosureOutput: boolean;
 }
 
 export class CodeGenerator {

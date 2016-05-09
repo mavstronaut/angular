@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import * as path from 'path';
-import {convertDecorators} from 'tsickle';
+import * as tsickle from 'tsickle';
 import {NodeReflectorHost} from './reflector_host';
 import {AngularCompilerOptions} from './codegen';
 
@@ -32,26 +32,76 @@ export abstract class DelegatingHost implements ts.CompilerHost {
 export class TsickleHost extends DelegatingHost {
   // Additional diagnostics gathered by pre- and post-emit transformations.
   public diagnostics: ts.Diagnostic[] = [];
+  // tsickle wants to use the program even though the reference usually goes the other way
+  public program: ts.Program;
   private TSICKLE_SUPPORT = `
 interface DecoratorInvocation {
   type: Function;
   args?: any[];
 }
 `;
-  constructor(delegate: ts.CompilerHost, private options: ts.CompilerOptions) { super(delegate); }
+  constructor(delegate: ts.CompilerHost, private options: ts.CompilerOptions,
+              private ngOptions: AngularCompilerOptions) {
+    super(delegate);
+  }
 
   getSourceFile =
       (fileName: string, languageVersion: ts.ScriptTarget, onError?: (message: string) => void) => {
-        const originalContent = this.delegate.readFile(fileName);
-        let newContent = originalContent;
-        if (!/\.d\.ts$/.test(fileName)) {
-          const converted = convertDecorators(fileName, originalContent);
+        let originalContent = this.delegate.readFile(fileName);
+        if (/\.d\.ts$/.test(fileName)) {
+          return ts.createSourceFile(fileName, originalContent, languageVersion, true);
+        } else {
+          let firstPass = originalContent;
+          if (this.ngOptions.googleClosureOutput) {
+            const annotateResult =
+                tsickle.annotate(this.program, this.program.getSourceFile(fileName), {untyped:true});
+            if (annotateResult.diagnostics) {
+              this.diagnostics.push(...annotateResult.diagnostics);
+            }
+            firstPass = annotateResult.output;
+          }
+          const converted = tsickle.convertDecorators(fileName, firstPass);
           if (converted.diagnostics) {
             this.diagnostics.push(...converted.diagnostics);
           }
-          newContent = converted.output + this.TSICKLE_SUPPORT;
+          return ts.createSourceFile(fileName, converted.output + this.TSICKLE_SUPPORT,
+                                     languageVersion, true);
         }
-        return ts.createSourceFile(fileName, newContent, languageVersion, true);
+      };
+
+  writeFile: ts.WriteFileCallback =
+      (fileName: string, data: string, writeByteOrderMark: boolean,
+       onError?: (message: string) => void, sourceFiles?: ts.SourceFile[]) => {
+        let toWrite = data;
+        if (/\.js$/.test(fileName) && this.ngOptions.googleClosureOutput) {
+          const {output, referencedModules} = tsickle.convertCommonJsToGoogModule(
+              fileName, data,
+              (context: string, moduleName: string) => {
+                let angularModuleNameCandidate = moduleName;
+                if (moduleName.indexOf('.') === 0) {
+                  const relPath = path.normalize(path.join(path.dirname(fileName), moduleName));
+                  if (relPath) {
+                    angularModuleNameCandidate = relPath + ".js";
+                  }
+                }
+
+                let rel = path.relative(this.delegate.getCurrentDirectory(), angularModuleNameCandidate);
+                const regex = /dist\/packages-dist\/([^\/]+)\/esm\/(.*).js/;
+                if (regex.test(rel)) {
+                  return rel.replace(regex, (match: string, pkg: string, impt:string) => {
+                    return `@angular.${pkg}.${impt.replace(/\//g, '.')}`;
+                  });
+                }
+                if (moduleName.indexOf('@angular') === 0) {
+                  return moduleName.replace(/\//, '.');
+                }
+                 else {
+                  return moduleName;
+                }
+              });
+          toWrite = output;
+        }
+        return this.delegate.writeFile(fileName, toWrite, writeByteOrderMark, onError, sourceFiles);
       }
 }
 
