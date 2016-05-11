@@ -1,8 +1,8 @@
 import * as ts from 'typescript';
 import * as path from 'path';
 import * as tsickle from 'tsickle';
-import {NodeReflectorHost} from './reflector_host';
-import {AngularCompilerOptions} from './codegen';
+//import {NodeReflectorHost} from './reflector_host';
+import {AngularCompilerOptions} from './options';
 
 /**
  * Implementation of CompilerHost that forwards all methods to another instance.
@@ -69,40 +69,46 @@ interface DecoratorInvocation {
         }
       };
 
+  /**
+   * Massages file names into valid goog.module names:
+   * - resolves relative paths to the given context
+   * - replace resolved module path with module name
+   * - replaces '/' with '$' to have a flat name.
+   * - replace first char if non-alpha
+   * - replace subsequent non-alpha numeric chars
+   */
+  static pathToGoogModuleName(context:string, importPath:string) {
+    importPath = importPath.replace(/\.js$/, '');
+    if (importPath[0] == '.') {
+      // './foo' or '../foo'.
+      // Resolve the path against the dirname of the current module.
+      importPath = path.join(path.dirname(context), importPath);
+    }
+    const dist = /dist\/packages-dist\/([^\/]+)\/esm\/(.*)/;
+    if (dist.test(importPath)) {
+      importPath = importPath.replace(dist, (match:string, pkg:string, impt:string) => {
+        return `@angular/${pkg}/${impt}`;
+      }).replace(/\/index$/, '');
+    }
+    // Replace characters not supported by goog.module.
+    let moduleName = importPath.replace(/\//g, '$')
+      .replace(/_/g, '__')
+      .replace(/^[^a-zA-Z_$]/, '_')
+      .replace(/[^a-zA-Z_0-9._$]/g, '_');
+    return moduleName;
+  }
+
   writeFile: ts.WriteFileCallback =
       (fileName: string, data: string, writeByteOrderMark: boolean,
        onError?: (message: string) => void, sourceFiles?: ts.SourceFile[]) => {
         let toWrite = data;
         if (/\.js$/.test(fileName) && this.ngOptions.googleClosureOutput) {
           const {output, referencedModules} = tsickle.convertCommonJsToGoogModule(
-              fileName, data,
-              (context: string, moduleName: string) => {
-                let angularModuleNameCandidate = moduleName;
-                if (moduleName.indexOf('.') === 0) {
-                  const relPath = path.normalize(path.join(path.dirname(fileName), moduleName));
-                  if (relPath) {
-                    angularModuleNameCandidate = relPath + ".js";
-                  }
-                }
-
-                let rel = path.relative(this.delegate.getCurrentDirectory(), angularModuleNameCandidate);
-                const regex = /dist\/packages-dist\/([^\/]+)\/esm\/(.*).js/;
-                if (regex.test(rel)) {
-                  return rel.replace(regex, (match: string, pkg: string, impt:string) => {
-                    return `@angular.${pkg}.${impt.replace(/\//g, '.')}`;
-                  });
-                }
-                if (moduleName.indexOf('@angular') === 0) {
-                  return moduleName.replace(/\//, '.');
-                }
-                 else {
-                  return moduleName;
-                }
-              });
+            path.relative(this.delegate.getCurrentDirectory(), fileName), data, TsickleHost.pathToGoogModuleName);
           toWrite = output;
         }
         return this.delegate.writeFile(fileName, toWrite, writeByteOrderMark, onError, sourceFiles);
-      }
+      };
 }
 
 const IGNORED_FILES = /\.ngfactory\.js$|\.css\.js$|\.css\.shim\.js$/;
@@ -139,5 +145,5 @@ export class MetadataWriterHost extends DelegatingHost {
       throw new Error('Bundled emit with --out is not supported');
     }
     this.reflectorHost.writeMetadata(fileName, sourceFiles[0]);
-  }
+  };
 }

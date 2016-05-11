@@ -1,6 +1,7 @@
 {
   "angularCompilerOptions": {
-    "skipTemplateCodegen": true
+    "skipTemplateCodegen": true,
+    "googleClosureOutput": true
   },
   "compilerOptions": {
     "baseUrl": ".",

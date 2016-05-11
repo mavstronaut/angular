@@ -3,7 +3,6 @@ import {Animation} from './animation';
 import {BrowserDetails} from './browser_details';
 
 export class CssAnimationBuilder {
-  /** @type {CssAnimationOptions} */
   data: CssAnimationOptions = new CssAnimationOptions();
 
   /**
@@ -13,7 +12,6 @@ export class CssAnimationBuilder {
 
   /**
    * Adds a temporary class that will be removed at the end of the animation
-   * @param className
    */
   addAnimationClass(className: string): CssAnimationBuilder {
     this.data.animationClasses.push(className);
@@ -22,7 +20,6 @@ export class CssAnimationBuilder {
 
   /**
    * Adds a class that will remain on the element after the animation has finished
-   * @param className
    */
   addClass(className: string): CssAnimationBuilder {
     this.data.classesToAdd.push(className);
@@ -31,7 +28,6 @@ export class CssAnimationBuilder {
 
   /**
    * Removes a class from the element
-   * @param className
    */
   removeClass(className: string): CssAnimationBuilder {
     this.data.classesToRemove.push(className);
@@ -40,7 +36,6 @@ export class CssAnimationBuilder {
 
   /**
    * Sets the animation duration (and overrides any defined through CSS)
-   * @param duration
    */
   setDuration(duration: number): CssAnimationBuilder {
     this.data.duration = duration;
@@ -49,7 +44,6 @@ export class CssAnimationBuilder {
 
   /**
    * Sets the animation delay (and overrides any defined through CSS)
-   * @param delay
    */
   setDelay(delay: number): CssAnimationBuilder {
     this.data.delay = delay;
@@ -58,8 +52,6 @@ export class CssAnimationBuilder {
 
   /**
    * Sets styles for both the initial state and the destination state
-   * @param from
-   * @param to
    */
   setStyles(from: {[key: string]: any}, to: {[key: string]: any}): CssAnimationBuilder {
     return this.setFromStyles(from).setToStyles(to);
@@ -67,7 +59,6 @@ export class CssAnimationBuilder {
 
   /**
    * Sets the initial styles for the animation
-   * @param from
    */
   setFromStyles(from: {[key: string]: any}): CssAnimationBuilder {
     this.data.fromStyles = from;
@@ -76,7 +67,6 @@ export class CssAnimationBuilder {
 
   /**
    * Sets the destination styles for the animation
-   * @param to
    */
   setToStyles(to: {[key: string]: any}): CssAnimationBuilder {
     this.data.toStyles = to;
@@ -85,7 +75,6 @@ export class CssAnimationBuilder {
 
   /**
    * Starts the animation and returns a promise
-   * @param element
    */
   start(element: HTMLElement): Animation {
     return new Animation(element, this.data, this.browserDetails);

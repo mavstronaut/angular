@@ -9,7 +9,6 @@ import * as ts from 'typescript';
 import {tsc, check} from './tsc';
 import {MetadataWriterHost, TsickleHost} from './compiler_host';
 import {NodeReflectorHost} from './reflector_host';
-import {CodeGenerator} from './codegen';
 import {MetadataCollector, ModuleMetadata} from 'ts-metadata-collector';
 
 const DEBUG = false;
@@ -41,7 +40,7 @@ export function main(project: string, basePath?: string): Promise<any> {
 
     const doCodegen = ngOptions.skipTemplateCodegen ?
                           Promise.resolve(null) :
-                          CodeGenerator.create(ngOptions, program, parsed.options, host).codegen();
+                          null;
 
     return doCodegen.then(() => {
       tsc.typeCheck(host, program);

@@ -3,7 +3,7 @@ import * as ts from 'typescript';
 import {MetadataCollector, ModuleMetadata} from 'ts-metadata-collector';
 import * as fs from 'fs';
 import * as path from 'path';
-import {AngularCompilerOptions} from './codegen';
+import {AngularCompilerOptions} from './options';
 import {ImportGenerator, AssetUrl} from './compiler_private';
 
 const EXT = /(\.ts|\.d\.ts|\.js|\.jsx|\.tsx)$/;
