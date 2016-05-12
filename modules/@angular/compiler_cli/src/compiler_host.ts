@@ -1,8 +1,8 @@
 import * as ts from 'typescript';
 import * as path from 'path';
 import * as tsickle from 'tsickle';
-//import {NodeReflectorHost} from './reflector_host';
-import {AngularCompilerOptions} from './options';
+import {NodeReflectorHost} from './reflector_host';
+import {AngularCompilerOptions} from './codegen';
 
 /**
  * Implementation of CompilerHost that forwards all methods to another instance.
@@ -89,6 +89,10 @@ interface DecoratorInvocation {
       importPath = importPath.replace(dist, (match:string, pkg:string, impt:string) => {
         return `@angular/${pkg}/${impt}`;
       }).replace(/\/index$/, '');
+    }
+    const rxDist = /dist\/es6\/(.*)/;
+    if (rxDist.test(importPath)) {
+      importPath = importPath.replace(rxDist, "rxjs/$1");
     }
     // Replace characters not supported by goog.module.
     let moduleName = importPath.replace(/\//g, '$')
