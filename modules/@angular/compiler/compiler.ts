@@ -35,4 +35,4 @@ export {
 } from './src/compiler';
 
 export * from './src/template_ast';
-export * from './private_export';
+export {__compiler_private__} from './private_export';

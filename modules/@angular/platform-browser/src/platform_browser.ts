@@ -23,7 +23,7 @@ export {
   HammerGestureConfig
 } from './browser_common';
 
-export * from '../private_export';
+export {__platform_browser_private__} from '../private_export';
 export {DOCUMENT} from './dom/dom_tokens';
 
 export {DomSanitizationService, SecurityContext} from './security/dom_sanitization_service';

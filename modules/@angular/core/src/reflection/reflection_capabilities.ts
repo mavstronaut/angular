@@ -141,8 +141,9 @@ export class ReflectionCapabilities implements PlatformReflectionCapabilities {
     }
     // The array has to be filled with `undefined` because holes would be skipped by `some`
     let parameters = new Array((<any>typeOrFunc.length));
-    parameters.fill(undefined);
-    return parameters;
+    parameters.fill(undefined); // FIXME??
+    return [];
+    //return parameters;
   }
 
   annotations(typeOrFunc: Type): any[] {
