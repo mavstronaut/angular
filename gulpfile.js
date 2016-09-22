@@ -118,19 +118,23 @@ gulp.task('check-tests', function() {
 });
 
 // Check the coding standards and programming errors
-gulp.task('lint', ['check-tests', 'format:enforce', 'tools:build'], () => {
-  const tslint = require('gulp-tslint');
+gulp.task('lint', ['check-tests', /*'format:enforce',*/ 'tools:build'], () => {
+  const gulpTslint = require('gulp-tslint');
+  const tslint = require('tslint');
   // Built-in rules are at
   // https://github.com/palantir/tslint#supported-rules
   const tslintConfig = require('./tslint.json');
+  const program = tslint.createProgram("./modules/tsconfig.json");
+  program.getSemanticDiagnostics();
   return gulp.src(['modules/@angular/**/*.ts', 'modules/benchpress/**/*.ts'])
-    .pipe(tslint({
-      tslint: require('tslint').default,
+    .pipe(gulpTslint({
+      tslint: tslint.default,
       configuration: tslintConfig,
       rulesDirectory: 'dist/tools/tslint',
       formatter: 'prose',
+      program,
     }))
-    .pipe(tslint.report({emitError: true}));
+    .pipe(gulpTslint.report({emitError: true}));
 });
 
 gulp.task('tools:build', (done) => { tsc('tools/', done); });

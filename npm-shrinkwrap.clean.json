@@ -1576,7 +1576,7 @@
           "version": "1.0.0"
         },
         "lodash": {
-          "version": "4.14.2"
+          "version": "4.13.1"
         },
         "readable-stream": {
           "version": "2.0.6"
@@ -1611,7 +1611,7 @@
           "version": "1.0.0"
         },
         "lodash": {
-          "version": "4.14.2"
+          "version": "4.13.1"
         },
         "readable-stream": {
           "version": "2.0.6"
@@ -1953,6 +1953,14 @@
     },
     "find-up": {
       "version": "1.1.0"
+    },
+    "findup-sync": {
+      "version": "0.3.0",
+      "dependencies": {
+        "glob": {
+          "version": "5.0.15"
+        }
+      }
     },
     "firefox-profile": {
       "version": "0.3.11",
@@ -2687,9 +2695,6 @@
         },
         "through2": {
           "version": "2.0.0"
-        },
-        "vinyl": {
-          "version": "0.5.3"
         }
       }
     },
@@ -2886,7 +2891,15 @@
           "version": "2.4.1"
         },
         "minimatch": {
-          "version": "0.3.0"
+          "version": "0.3.0",
+          "dependencies": {
+            "lru-cache": {
+              "version": "2.7.3"
+            },
+            "sigmund": {
+              "version": "1.0.1"
+            }
+          }
         }
       }
     },
@@ -3631,7 +3644,15 @@
               "version": "3.2.11"
             },
             "minimatch": {
-              "version": "0.3.0"
+              "version": "0.3.0",
+              "dependencies": {
+                "lru-cache": {
+                  "version": "2.7.3"
+                },
+                "sigmund": {
+                  "version": "1.0.1"
+                }
+              }
             }
           }
         },
@@ -4154,7 +4175,7 @@
       "version": "0.6.5",
       "dependencies": {
         "readable-stream": {
-          "version": "1.0.34"
+          "version": "1.0.33"
         }
       }
     },
@@ -4256,29 +4277,16 @@
       }
     },
     "tslint": {
-      "version": "3.15.0-dev.0",
+      "version": "3.15.1",
       "dependencies": {
-        "findup-sync": {
-          "version": "0.3.0",
-          "dependencies": {
-            "glob": {
-              "version": "5.0.15"
-            }
-          }
-        },
         "glob": {
-          "version": "7.0.6",
-          "dependencies": {
-            "minimatch": {
-              "version": "3.0.3"
-            }
-          }
+          "version": "7.1.0"
+        },
+        "minimatch": {
+          "version": "3.0.3"
         },
         "resolve": {
           "version": "1.1.7"
-        },
-        "underscore.string": {
-          "version": "3.3.4"
         }
       }
     },
@@ -4345,6 +4353,9 @@
     },
     "underscore": {
       "version": "1.8.3"
+    },
+    "underscore.string": {
+      "version": "3.3.4"
     },
     "unicoderegexp": {
       "version": "0.4.1"
@@ -4414,6 +4425,9 @@
     },
     "vhost": {
       "version": "3.0.2"
+    },
+    "vinyl": {
+      "version": "0.5.3"
     },
     "vinyl-fs": {
       "version": "0.3.14",
