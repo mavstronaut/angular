@@ -1,16 +1,8 @@
-/**
- * @license
- * Copyright Google Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
- */
-import {ListWrapper} from '../facade/collection';
-import {identifierToken} from '../identifiers';
+
 import {AnimationOutput} from '../private_import_core';
 import {AttrAst, BoundDirectivePropertyAst, BoundElementPropertyAst, BoundEventAst, BoundTextAst, DirectiveAst, ElementAst, EmbeddedTemplateAst, NgContentAst, ReferenceAst, TemplateAst, TemplateAstVisitor, TextAst, VariableAst, templateVisitAll} from '../template_parser/template_ast';
 
-import {CompileElement, CompileNode} from './compile_element';
+import {CompileElement} from './compile_element';
 import {CompileView} from './compile_view';
 import {CompileElementAnimationOutput, CompileEventListener, bindAnimationOutputs, bindDirectiveOutputs, bindRenderOutputs, collectEventListeners} from './event_binder';
 import {bindDirectiveAfterContentLifecycleCallbacks, bindDirectiveAfterViewLifecycleCallbacks, bindDirectiveDetectChangesLifecycleCallbacks, bindInjectableDestroyLifecycleCallbacks, bindPipeDestroyLifecycleCallbacks} from './lifecycle_binder';

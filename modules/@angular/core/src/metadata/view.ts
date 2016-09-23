@@ -7,7 +7,6 @@
  */
 
 import {AnimationEntryMetadata} from '../animation/metadata';
-import {Type} from '../type';
 
 
 /**

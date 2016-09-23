@@ -1,12 +1,4 @@
-/**
- * @license
- * Copyright Google Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
- */
 
-import {NgFor, NgIf} from '@angular/common';
 import {Injectable, NO_ERRORS_SCHEMA} from '@angular/core';
 import {Component, Directive, Input} from '@angular/core/src/metadata';
 import {ComponentFixture, TestBed, async} from '@angular/core/testing';

@@ -7,7 +7,7 @@
  */
 
 import {CompileDirectiveMetadata} from '../compile_metadata';
-import {ListWrapper, StringMapWrapper} from '../facade/collection';
+import {StringMapWrapper} from '../facade/collection';
 import {StringWrapper, isBlank, isPresent} from '../facade/lang';
 import {Identifiers, identifierToken, resolveIdentifier} from '../identifiers';
 import * as o from '../output/output_ast';

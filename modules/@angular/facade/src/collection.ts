@@ -6,10 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {getSymbolIterator, global, isArray, isBlank, isJsObject, isPresent} from './lang';
-
-// Safari and Internet Explorer do not support the iterable parameter to the
-// Map constructor.  We work around that by manually adding the items.
+import {getSymbolIteratoronstructor.  We work around that by manually adding the items.
 const createMapFromPairs: {(pairs: any[]): Map<any, any>} = (function() {
   try {
     if (new Map(<any>[[1, 2]]).size === 1) {

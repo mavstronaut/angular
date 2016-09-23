@@ -6,16 +6,16 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {ChangeDetectionStrategy, ViewEncapsulation} from '@angular/core';
+import {ViewEncapsulation} from '@angular/core';
 
 import {AnimationCompiler} from '../animation/animation_compiler';
-import {CompileDirectiveMetadata, CompileIdentifierMetadata, CompileTokenMetadata, CompileTypeMetadata} from '../compile_metadata';
+import {CompileDirectiveMetadata, CompileIdentifierMetadata, CompileTokenMetadata} from '../compile_metadata';
 import {ListWrapper, SetWrapper, StringMapWrapper} from '../facade/collection';
 import {StringWrapper, isPresent} from '../facade/lang';
-import {Identifiers, identifierToken, resolveIdentifier, resolveIdentifierToken} from '../identifiers';
+import {Identifiers, identifierToken, resolveIdentifier} from '../identifiers';
 import * as o from '../output/output_ast';
 import {ChangeDetectorStatus, ViewType, isDefaultChangeDetectionStrategy} from '../private_import_core';
-import {AttrAst, BoundDirectivePropertyAst, BoundElementPropertyAst, BoundEventAst, BoundTextAst, DirectiveAst, ElementAst, EmbeddedTemplateAst, NgContentAst, ProviderAst, ReferenceAst, TemplateAst, TemplateAstVisitor, TextAst, VariableAst, templateVisitAll} from '../template_parser/template_ast';
+import {AttrAst, BoundDirectivePropertyAst, BoundElementPropertyAst, BoundEventAst, BoundTextAst, DirectiveAst, ElementAst, EmbeddedTemplateAst, NgContentAst, ReferenceAst, TemplateAst, TemplateAstVisitor, TextAst, VariableAst, templateVisitAll} from '../template_parser/template_ast';
 import {createDiTokenExpression} from '../util';
 
 import {CompileElement, CompileNode} from './compile_element';

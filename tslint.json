@@ -3,6 +3,6 @@
       "typeCheck": true
     },
     "rules": {
-      "is-blank": true
+      "no-unused-variable": true
     }
 }

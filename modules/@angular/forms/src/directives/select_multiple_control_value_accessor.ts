@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {Directive, ElementRef, Host, Input, OnDestroy, OpaqueToken, Optional, Renderer, Type, forwardRef} from '@angular/core';
+import {Directive, ElementRef, Host, Input, OnDestroy, Optional, Renderer, forwardRef} from '@angular/core';
 
 import {MapWrapper} from '../facade/collection';
 import {StringWrapper, isBlank, isPresent, isPrimitive, isString, looseIdentical} from '../facade/lang';

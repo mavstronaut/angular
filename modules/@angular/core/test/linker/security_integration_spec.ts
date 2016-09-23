@@ -6,10 +6,10 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA} from '@angular/core';
+import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {Component} from '@angular/core/src/metadata';
 import {TestBed, getTestBed} from '@angular/core/testing';
-import {afterEach, beforeEach, beforeEachProviders, ddescribe, describe, expect, iit, inject, it} from '@angular/core/testing/testing_internal';
+import {afterEach, beforeEach, describe, expect, it} from '@angular/core/testing/testing_internal';
 import {getDOM} from '@angular/platform-browser/src/dom/dom_adapter';
 import {DomSanitizer} from '@angular/platform-browser/src/security/dom_sanitization_service';
 

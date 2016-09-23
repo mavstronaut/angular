@@ -6,10 +6,10 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {AsyncTestCompleter, afterEach, beforeEach, ddescribe, describe, expect, iit, inject, it, xit} from '@angular/core/testing/testing_internal';
+import {AsyncTestCompleter, describe, expect, inject, it} from '@angular/core/testing/testing_internal';
 
 import {MeasureValues, Metric, Options, ReflectiveInjector, Reporter, Sampler, Validator, WebDriverAdapter} from '../index';
-import {Date, DateWrapper, isBlank, isPresent, stringify} from '../src/facade/lang';
+import {DateWrapper, isBlank, isPresent} from '../src/facade/lang';
 
 export function main() {
   var EMPTY_EXECUTE = () => {};

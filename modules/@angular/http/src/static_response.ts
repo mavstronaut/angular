@@ -1,18 +1,9 @@
-/**
- * @license
- * Copyright Google Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
- */
 
-import {Json, isString} from '../src/facade/lang';
 
 import {ResponseOptions} from './base_response_options';
 import {Body} from './body';
 import {ResponseType} from './enums';
 import {Headers} from './headers';
-import {isJsObject} from './http_utils';
 
 
 /**

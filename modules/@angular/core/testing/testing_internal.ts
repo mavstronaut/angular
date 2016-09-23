@@ -10,7 +10,7 @@ import {AsyncTestCompleter} from './async_test_completer';
 import {StringMapWrapper} from './facade/collection';
 import {Math, global} from './facade/lang';
 import {isPromise} from './private_import_core';
-import {TestBed, getTestBed, inject} from './test_bed';
+import {getTestBed} from './test_bed';
 
 export {AsyncTestCompleter} from './async_test_completer';
 export {MockAnimationPlayer} from './mock_animation_player';
