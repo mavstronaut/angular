@@ -8,7 +8,7 @@
 
 import {ElementSchemaRegistry} from '@angular/compiler/src/schema/element_schema_registry';
 import {TEST_COMPILER_PROVIDERS} from '@angular/compiler/testing/test_bindings';
-import {AfterContentChecked, AfterContentInit, AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, DebugElement, Directive, DoCheck, Injectable, Input, OnChanges, OnDestroy, OnInit, Output, Pipe, PipeTransform, RenderComponentType, Renderer, RootRenderer, SimpleChange, SimpleChanges, TemplateRef, Type, ViewContainerRef, WrappedValue} from '@angular/core';
+import {AfterContentChecked, AfterContentInit, AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, DebugElement, Directive, DoCheck, Injectable, Input, OnChanges, OnDestroy, OnInit, Output, Pipe, PipeTransform, RenderComponentType, Renderer, RootRenderer, SimpleChanges, TemplateRef, Type, ViewContainerRef, WrappedValue} from '@angular/core';
 import {DebugDomRenderer} from '@angular/core/src/debug/debug_renderer';
 import {ComponentFixture, TestBed, fakeAsync} from '@angular/core/testing';
 import {By} from '@angular/platform-browser/src/dom/debug/by';
@@ -17,7 +17,6 @@ import {DomRootRenderer} from '@angular/platform-browser/src/dom/dom_renderer';
 
 import {MockSchemaRegistry} from '../../../compiler/testing/index';
 import {EventEmitter} from '../../src/facade/async';
-import {StringMapWrapper} from '../../src/facade/collection';
 import {NumberWrapper} from '../../src/facade/lang';
 
 export function main() {
@@ -1348,7 +1347,10 @@ class TestDirective implements OnInit, DoCheck, OnChanges, AfterContentInit, Aft
   ngOnChanges(changes: SimpleChanges) {
     this.log.add(this.name, 'ngOnChanges');
     const r: {[k: string]: string} = {};
-    StringMapWrapper.forEach(changes, (c: SimpleChange, key: string) => r[key] = c.currentValue);
+    Object.keys(changes).forEach(key => {
+      const c = changes[key];
+      r[key] = c.currentValue;
+    });
     this.changes = r;
     if (this.throwOn == 'ngOnChanges') {
       throw new Error('Boom!');

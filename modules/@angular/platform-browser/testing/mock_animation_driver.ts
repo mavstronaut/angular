@@ -9,8 +9,6 @@
 import {AnimationPlayer} from '@angular/core';
 import {MockAnimationPlayer} from '@angular/core/testing/testing_internal';
 import {AnimationDriver} from '@angular/platform-browser';
-
-import {StringMapWrapper} from './facade/collection';
 import {AnimationKeyframe, AnimationStyles} from './private_import_core';
 
 export class MockAnimationDriver extends AnimationDriver {
@@ -40,7 +38,10 @@ function _serializeKeyframes(keyframes: AnimationKeyframe[]): any[] {
 function _serializeStyles(styles: AnimationStyles): {[key: string]: any} {
   var flatStyles: {[key: string]: any} = {};
   styles.styles.forEach((entry: {[key: string]: string | number;}) => {
-    StringMapWrapper.forEach(entry, (val: any, prop: string) => { flatStyles[prop] = val; });
+    Object.keys(entry).forEach(prop => {
+      const val = entry[prop];
+      flatStyles[prop] = val;
+    });
   });
   return flatStyles;
 }

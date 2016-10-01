@@ -338,13 +338,12 @@ function _parseAnimationKeyframes(
     var offset = styleMetadata.offset;
     var keyframeStyles: {[key: string]: string | number} = {};
     styleMetadata.styles.forEach(entry => {
-      StringMapWrapper.forEach(
-          <{[key: string]: string | number}>entry,
-          (value: any /** TODO #9100 */, prop: any /** TODO #9100 */) => {
-            if (prop != 'offset') {
-              keyframeStyles[prop] = value;
-            }
-          });
+      Object.keys(entry).forEach(prop => {
+        const value: any = (entry as{[key: string]: string | number})[prop];
+        if (prop != 'offset') {
+          keyframeStyles[prop] = value;
+        }
+      });
     });
 
     if (isPresent(offset)) {
@@ -381,24 +380,23 @@ function _parseAnimationKeyframes(
     let entry = rawKeyframes[i];
     let styles = entry[1];
 
-    StringMapWrapper.forEach(
-        styles, (value: any /** TODO #9100 */, prop: any /** TODO #9100 */) => {
-          if (!isPresent(firstKeyframeStyles[prop])) {
-            firstKeyframeStyles[prop] = FILL_STYLE_FLAG;
-          }
-        });
+    Object.keys(styles).forEach(prop => {
+      if (!isPresent(firstKeyframeStyles[prop])) {
+        firstKeyframeStyles[prop] = FILL_STYLE_FLAG;
+      }
+    });
   }
 
   for (i = limit - 1; i >= 0; i--) {
     let entry = rawKeyframes[i];
     let styles = entry[1];
 
-    StringMapWrapper.forEach(
-        styles, (value: any /** TODO #9100 */, prop: any /** TODO #9100 */) => {
-          if (!isPresent(lastKeyframeStyles[prop])) {
-            lastKeyframeStyles[prop] = value;
-          }
-        });
+    Object.keys(styles).forEach(prop => {
+      const value = styles[prop];
+      if (!isPresent(lastKeyframeStyles[prop])) {
+        lastKeyframeStyles[prop] = value;
+      }
+    });
   }
 
   return rawKeyframes.map(
@@ -423,10 +421,10 @@ function _parseTransitionAnimation(
         entry.styles.forEach(stylesEntry => {
           // by this point we know that we only have stringmap values
           var map = <{[key: string]: string | number}>stylesEntry;
-          StringMapWrapper.forEach(
-              map, (value: any /** TODO #9100 */, prop: any /** TODO #9100 */) => {
-                collectedStyles.insertAtTime(prop, time, value);
-              });
+          Object.keys(map).forEach(prop => {
+            const value = map[prop];
+            collectedStyles.insertAtTime(prop, time, value);
+          });
         });
         previousStyles = entry.styles;
         return;
@@ -484,9 +482,10 @@ function _parseTransitionAnimation(
 
     keyframes.forEach(
         (keyframe: any /** TODO #9100 */) => keyframe.styles.styles.forEach(
-            (entry: any /** TODO #9100 */) => StringMapWrapper.forEach(
-                entry, (value: any /** TODO #9100 */, prop: any /** TODO #9100 */) =>
-                           collectedStyles.insertAtTime(prop, currentTime, value))));
+            (entry: any /** TODO #9100 */) => Object.keys(entry).forEach(prop => {
+              const value = entry[prop];
+              collectedStyles.insertAtTime(prop, currentTime, value);
+            })));
   } else {
     // if the code reaches this stage then an error
     // has already been populated within the _normalizeStyleSteps()
@@ -562,7 +561,8 @@ function _createStartKeyframeFromEndKeyframe(
   var values: {[key: string]: string | number} = {};
   var endTime = startTime + duration;
   endKeyframe.styles.styles.forEach((styleData: {[key: string]: string | number}) => {
-    StringMapWrapper.forEach(styleData, (val: any /** TODO #9100 */, prop: any /** TODO #9100 */) => {
+    Object.keys(styleData).forEach(prop => {
+      const val = styleData[prop];
       if (prop == 'offset') return;
 
       var resultIndex = collectedStyles.indexOfAtOrBeforeTime(prop, startTime);

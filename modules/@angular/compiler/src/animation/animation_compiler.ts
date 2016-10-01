@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {StringMapWrapper} from '../facade/collection';
+
 import {isPresent} from '../facade/lang';
 import {Identifiers, resolveIdentifier} from '../identifiers';
 import * as o from '../output/output_ast';
@@ -61,8 +61,7 @@ class _AnimationBuilder implements AnimationAstVisitor {
     }
 
     ast.styles.forEach(entry => {
-      stylesArr.push(
-          o.literalMap(StringMapWrapper.keys(entry).map(key => [key, o.literal(entry[key])])));
+      stylesArr.push(o.literalMap(Object.keys(entry).map(key => [key, o.literal(entry[key])])));
     });
 
     return o.importExpr(resolveIdentifier(Identifiers.AnimationStyles)).instantiate([
@@ -134,7 +133,10 @@ class _AnimationBuilder implements AnimationAstVisitor {
       ast: AnimationStateDeclarationAst, context: _AnimationBuilderContext): void {
     var flatStyles: {[key: string]: string | number} = {};
     _getStylesArray(ast).forEach(entry => {
-      StringMapWrapper.forEach(entry, (value: string, key: string) => { flatStyles[key] = value; });
+      Object.keys(entry).forEach(key => {
+        const value = entry[key];
+        flatStyles[key] = value;
+      });
     });
     context.stateMap.registerState(ast.stateName, flatStyles);
   }
@@ -291,18 +293,19 @@ class _AnimationBuilder implements AnimationAstVisitor {
     var fnVariable = o.variable(this._fnVarName);
 
     var lookupMap: any[] = [];
-    StringMapWrapper.forEach(
-        context.stateMap.states, (value: {[key: string]: string}, stateName: string) => {
-          var variableValue = EMPTY_MAP;
-          if (isPresent(value)) {
-            let styleMap: any[] = [];
-            StringMapWrapper.forEach(value, (value: string, key: string) => {
-              styleMap.push([key, o.literal(value)]);
-            });
-            variableValue = o.literalMap(styleMap);
-          }
-          lookupMap.push([stateName, variableValue]);
+    Object.keys(context.stateMap.states).forEach(stateName => {
+      const value = context.stateMap.states[stateName];
+      var variableValue = EMPTY_MAP;
+      if (isPresent(value)) {
+        let styleMap: any[] = [];
+        Object.keys(value).forEach(key => {
+          const value2 = value[key];
+          styleMap.push([key, o.literal(value2)]);
         });
+        variableValue = o.literalMap(styleMap);
+      }
+      lookupMap.push([stateName, variableValue]);
+    });
 
     const compiledStatesMapStmt = this._statesMapVar.set(o.literalMap(lookupMap)).toDeclStmt();
     const statements: o.Statement[] = [compiledStatesMapStmt, fnStatement];
@@ -349,7 +352,7 @@ function _isEndStateAnimateStep(step: AnimationAst): boolean {
   if (step instanceof AnimationStepAst && step.duration > 0 && step.keyframes.length == 2) {
     var styles1 = _getStylesArray(step.keyframes[0])[0];
     var styles2 = _getStylesArray(step.keyframes[1])[0];
-    return StringMapWrapper.isEmpty(styles1) && StringMapWrapper.isEmpty(styles2);
+    return Object.keys(styles1).length === 0 && Object.keys(styles2).length === 0;
   }
   return false;
 }

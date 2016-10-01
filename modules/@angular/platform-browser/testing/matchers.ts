@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {StringMapWrapper} from './facade/collection';
+
 import {global, isString} from './facade/lang';
 import {getDOM} from './private_import_platform-browser';
 
@@ -190,8 +190,9 @@ _global.beforeEach(function() {
           if (isString(styles)) {
             allPassed = getDOM().hasStyle(actual, styles);
           } else {
-            allPassed = !StringMapWrapper.isEmpty(styles);
-            StringMapWrapper.forEach(styles, (style: string, prop: string) => {
+            allPassed = Object.keys(styles).length !== 0;
+            Object.keys(styles).forEach(prop => {
+              const style = styles[prop];
               allPassed = allPassed && getDOM().hasStyle(actual, prop, style);
             });
           }

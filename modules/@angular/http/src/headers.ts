@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {ListWrapper, MapWrapper, StringMapWrapper, isListLikeIterable, iterateListLike} from '../src/facade/collection';
+import {ListWrapper, MapWrapper, isListLikeIterable, iterateListLike} from '../src/facade/collection';
 
 /**
  * Polyfill for [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers/Headers), as
@@ -52,7 +52,8 @@ export class Headers {
     }
 
     // headers instanceof StringMap
-    StringMapWrapper.forEach(headers, (v: any, k: string) => {
+    Object.keys(headers).forEach(k => {
+      const v = headers[k];
       this._headersMap.set(normalize(k), isListLikeIterable(v) ? v : [v]);
     });
   }

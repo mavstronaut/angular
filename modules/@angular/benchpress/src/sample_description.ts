@@ -6,10 +6,9 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
-import {OpaqueToken} from '@angular/core';
+
 
 import {Options} from './common_options';
-import {StringMapWrapper} from './facade/collection';
 import {Metric} from './metric';
 import {Validator} from './validator';
 
@@ -42,7 +41,10 @@ export class SampleDescription {
       public metrics: {[key: string]: any}) {
     this.description = {};
     descriptions.forEach(description => {
-      StringMapWrapper.forEach(description, (value, prop) => this.description[prop] = value);
+      Object.keys(description).forEach(prop => {
+        const value = description[prop];
+        this.description[prop] = value;
+      });
     });
   }
 

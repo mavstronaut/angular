@@ -9,7 +9,6 @@
 import {Injectable} from '@angular/core';
 
 import {AsyncValidatorFn, ValidatorFn} from './directives/validators';
-import {StringMapWrapper} from './facade/collection';
 import {isArray, isPresent} from './facade/lang';
 import {AbstractControl, FormArray, FormControl, FormGroup} from './model';
 
@@ -75,7 +74,8 @@ export class FormBuilder {
   /** @internal */
   _reduceControls(controlsConfig: {[k: string]: any}): {[key: string]: AbstractControl} {
     var controls: {[key: string]: AbstractControl} = {};
-    StringMapWrapper.forEach(controlsConfig, (controlConfig: any, controlName: string) => {
+    Object.keys(controlsConfig).forEach(controlName => {
+      const controlConfig = controlsConfig[controlName];
       controls[controlName] = this._createControl(controlConfig);
     });
     return controls;
